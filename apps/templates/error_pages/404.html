@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}ページが見つかりません - 404{% endblock %}
+
+{% block body %}
+    <!-- http.cat/からエラー画像を取得 -->
+   
+    <section id="error-404">
+        <div class="row my-4">
+            <div class="col-lg-6 mx-auto text-center">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h1 class="display-1 text-danger">404 エラー</h1>
+                        <!-- <h3 class="mb-3">ページが見つかりません</h3> -->
+                        <img src="https://http.cat/404" alt="エラー画像" style="max-width: 400px; width: 100%; height: auto; margin-bottom: 24px;">
+                        <p class="text-muted mb-4">
+                           
+                            
+                            お探しのページは存在しないか、移動された可能性があります。
+                        </p>
+                        
+                        <div class="mt-4">
+                            <a href="{{ url_for('index') }}" class="btn btn-primary me-2">
+                                <i class="fas fa-home"></i> トップページに戻る
+                            </a>
+                            <a href="javascript:history.back()" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> 前のページに戻る
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

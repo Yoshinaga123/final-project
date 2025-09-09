@@ -1,0 +1,28 @@
+{
+  "image_filename": "20250909_105903_4b23a898.webp",
+  "updated_at": "2025-09-09T02:04:06Z",
+  "model": "simulated",
+  "results": [
+    {
+      "class": "car",
+      "confidence": 0.79,
+      "bbox": {
+        "x": 181,
+        "y": 243,
+        "width": 200,
+        "height": 102
+      }
+    },
+    {
+      "class": "cow",
+      "confidence": 0.83,
+      "bbox": {
+        "x": 56,
+        "y": 180,
+        "width": 57,
+        "height": 179
+      }
+    }
+  ],
+  "count": 2
+}

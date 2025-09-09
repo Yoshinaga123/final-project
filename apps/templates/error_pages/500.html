@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>サーバーエラー (500)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        h1 {
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- https://http.cat/からエラー画像を取得 -->
+    <img src="https://http.cat/500" alt="エラー画像"
+        style="max-width: 400px; width: 100%; height: auto; margin-bottom: 24px;">
+    <h1>サーバー内部でエラーが発生しました。</h1>
+    <p>
+        申し訳ございません。サーバー側で予期せぬ問題が発生しました。<br>
+        時間をおいて再度お試しいただくか、管理者にお問い合わせください。
+    </p>
+
+    <a href="{{ url_for('index') }}">トップページに戻る</a>
+</body>
+
+</html>

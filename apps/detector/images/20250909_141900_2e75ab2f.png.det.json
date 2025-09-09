@@ -1,0 +1,48 @@
+{
+  "image_filename": "20250909_141900_2e75ab2f.png",
+  "updated_at": "2025-09-09T05:19:01Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "person",
+      "confidence": 0.93,
+      "bbox": {
+        "x": 693,
+        "y": 277,
+        "width": 466,
+        "height": 612
+      }
+    },
+    {
+      "class": "person",
+      "confidence": 0.92,
+      "bbox": {
+        "x": 1336,
+        "y": 256,
+        "width": 457,
+        "height": 634
+      }
+    },
+    {
+      "class": "person",
+      "confidence": 0.65,
+      "bbox": {
+        "x": 76,
+        "y": 254,
+        "width": 443,
+        "height": 556
+      }
+    },
+    {
+      "class": "tie",
+      "confidence": 0.31,
+      "bbox": {
+        "x": 1452,
+        "y": 491,
+        "width": 183,
+        "height": 396
+      }
+    }
+  ],
+  "count": 4
+}

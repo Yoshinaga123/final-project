@@ -1,0 +1,28 @@
+{
+  "image_filename": "20250909_124549_9c776e9a.webp",
+  "updated_at": "2025-09-09T03:46:11Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "tie",
+      "confidence": 0.93,
+      "bbox": {
+        "x": 800,
+        "y": 547,
+        "width": 219,
+        "height": 518
+      }
+    },
+    {
+      "class": "person",
+      "confidence": 0.9,
+      "bbox": {
+        "x": 283,
+        "y": 66,
+        "width": 1161,
+        "height": 984
+      }
+    }
+  ],
+  "count": 2
+}

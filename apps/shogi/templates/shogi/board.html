@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}棋譜管理{% endblock %}
+
+{% block head %}
+<!-- KifuForJSはbase.htmlで既に読み込まれています -->
+<style>
+    /* 棋譜管理ページのダークモード対応 - より白い文字 */
+    body.theme-dark .card {
+        background-color: var(--theme-bg-primary) !important;
+        border-color: var(--theme-border) !important;
+    }
+
+    body.theme-dark .card-header {
+        background-color: var(--theme-bg-secondary) !important;
+        border-color: var(--theme-border) !important;
+        color: #ffffff !important;
+    }
+
+    body.theme-dark .card-header h4 {
+        color: #ffffff !important;
+    }
+
+    body.theme-dark .card-body {
+        background-color: var(--theme-bg-primary) !important;
+        color: #ffffff !important;
+    }
+
+    body.theme-dark .text-muted {
+        color: #e0e0e0 !important;
+    }
+
+    /* 将棋盤の背景色調整 */
+    body.theme-dark #board-1 {
+        background-color: var(--theme-bg-secondary);
+        border-radius: 8px;
+        padding: 10px;
+    }
+
+    /* すべてのテキストを白く */
+    body.theme-dark .container h4,
+    body.theme-dark .container small {
+        color: #ffffff !important;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">棋譜管理</h4>
+                        <div>
+                            <a href="{{ url_for('shogi.kifu_list') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-list"></i> 棋譜一覧
+                            </a>
+                            <a href="{{ url_for('shogi.new') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> 新規作成
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <!-- <small class="text-muted">※ 棋譜は自動的に読み込まれます</small> -->
+                    </div>
+                    <div id="board-1"></div>
+                    <script>
+                        console.log("=== KIFU DEBUG - External File Method ===");
+                        console.log("KifuForJS available:", typeof KifuForJS);
+                        console.log("KifuForJS.load available:", typeof KifuForJS?.load);
+                        
+                        // 方法1: 外部KIFファイルを使用
+                        try {
+                            console.log("Trying external KIF file...");
+                            KifuForJS.load({
+                                src: "{{ url_for('static', filename='kifu/yoshinaga-shimada.kifu') }}"
+                            }, "board-1");
+                            console.log("External KIF file loaded successfully");
+                        } catch (fileError) {
+                            console.error("External KIF file failed:", fileError);
+                            
+                            // フォールバック: シンプル記法（10手まで）
+                            try {
+                                console.log("Falling back to simple notation...");
+                                const kifu = "▲７六歩 △３四歩 ▲６六歩 △９四歩 ▲９六歩 △６二銀 ▲２六歩 △４四歩 ▲４八銀 △４二銀";
+                                KifuForJS.load({ kifu }, "board-1");
+                                console.log("Simple notation succeeded");
+                            } catch (simpleError) {
+                                console.error("Simple notation also failed:", simpleError);
+                                
+                                // 最終フォールバック: 最小限の棋譜
+                                try {
+                                    console.log("Trying minimal kifu...");
+                                    const minimalKifu = "▲７六歩 △３四歩";
+                                    KifuForJS.load({ kifu: minimalKifu }, "board-1");
+                                    console.log("Minimal kifu succeeded");
+                                } catch (minimalError) {
+                                    console.error("All kifu loading methods failed:", minimalError);
+                                }
+                            }
+                        }
+                    </script>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">棋譜情報</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>対局者:</strong> 先手：吉永 vs 後手：島田</p>
+                    <p><strong>手数:</strong> 117手</p>
+                    <p><strong>結果:</strong> 先手の勝ち（投了）</p>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+{% endblock %}
+

@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}ログイン - App{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">ログイン</h3>
+                </div>
+                <div class="card-body">
+                    <!-- 全般的なエラーメッセージ表示エリア -->
+                    <div id="login-error" class="alert alert-danger" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="login-error-message">ユーザー名またはパスワードが間違っています</span>
+                    </div>
+                    
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            {{ form.username(class="form-control", id="username") }}
+                            <div id="username-error" class="text-danger mt-1" style="display: none; color: #dc3545 !important;">
+                                <small style="color: #dc3545 !important;"><i class="fas fa-exclamation-triangle" style="color: #dc3545 !important;"></i> ユーザー名は必須です。</small>
+                            </div>
+                            {% if form.username.errors %}
+                                <div class="text-danger" style="color: #dc3545 !important;">
+                                    {% for error in form.username.errors %}
+                                        <small style="color: #dc3545 !important;">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control", id="password") }}
+                            <div id="password-error" class="text-danger mt-1" style="display: none; color: #dc3545 !important;">
+                                <small style="color: #dc3545 !important;"><i class="fas fa-exclamation-triangle" style="color: #dc3545 !important;"></i> パスワードは必須です。</small>
+                            </div>
+                            {% if form.password.errors %}
+                                <div class="text-danger" style="color: #dc3545 !important;">
+                                    {% for error in form.password.errors %}
+                                        <small style="color: #dc3545 !important;">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('auth.register') }}">新規登録はこちら</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const usernameError = document.getElementById('username-error');
+    const passwordError = document.getElementById('password-error');
+    // loginError要素は削除済み（悪の元凶のため）
+    
+    // HTML5バリデーションを無効にして、カスタムバリデーションを使用
+    form.setAttribute('novalidate', 'true');
+    
+    // リアルタイムバリデーション（入力中）
+    usernameInput.addEventListener('input', function() {
+        // loginErrorは削除済み
+        if (this.value.trim() === '') {
+            showError(usernameError);
+            this.classList.add('is-invalid');
+        } else {
+            hideError(usernameError);
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        }
+    });
+    
+    passwordInput.addEventListener('input', function() {
+        // loginErrorは削除済み
+        if (this.value.trim() === '') {
+            showError(passwordError);
+            this.classList.add('is-invalid');
+        } else {
+            hideError(passwordError);
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        }
+    });
+    
+    // フォーム送信時のバリデーション
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // まず既存のエラーをクリア
+        hideError(usernameError);
+        hideError(passwordError);
+        // loginErrorはもう存在しない
+        usernameInput.classList.remove('is-invalid');
+        passwordInput.classList.remove('is-invalid');
+        
+        // ユーザー名チェック
+        if (usernameInput.value.trim() === '') {
+            showError(usernameError);
+            usernameInput.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        // パスワードチェック
+        if (passwordInput.value.trim() === '') {
+            showError(passwordError);
+            passwordInput.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        // 長さチェック
+        if (usernameInput.value.trim().length > 30) {
+            usernameError.innerHTML = '<small style="color: #dc3545 !important;"><i class="fas fa-exclamation-triangle" style="color: #dc3545 !important;"></i> ユーザー名は30文字以内で入力してください。</small>';
+            showError(usernameError);
+            usernameInput.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        // バリデーション失敗時は送信を停止
+        if (!isValid) {
+            e.preventDefault();
+            
+            // エラー時はシンプルに最初のエラーフィールドにフォーカス
+            if (usernameInput.classList.contains('is-invalid')) {
+                usernameInput.focus();
+            } else if (passwordInput.classList.contains('is-invalid')) {
+                passwordInput.focus();
+            }
+            
+            // エラー通知音（ブラウザがサポートしている場合）
+            if ('speechSynthesis' in window) {
+                // 無音でエラーを示すか、コンソールに出力
+                console.log('⚠️ フォームにエラーがあります');
+            }
+        } else {
+            // バリデーション成功時は即座に送信（ローディング表示なし）
+            // フォーム送信
+        }
+    });
+    
+    // 悪の元凶エラー表示関数群は完全削除済み
+    // サーバーサイドのFlaskのflashメッセージのみ使用
+    
+    // エラー表示関数
+    function showError(errorElement) {
+        errorElement.style.display = 'block';
+        errorElement.style.animation = 'fadeIn 0.3s ease-in';
+    }
+    
+    // エラー非表示関数
+    function hideError(errorElement) {
+        errorElement.style.display = 'none';
+    }
+    
+    // エラーメッセージをデフォルトに戻す関数
+    function resetErrorMessages() {
+        usernameError.innerHTML = '<small style="color: #dc3545 !important;"><i class="fas fa-exclamation-triangle" style="color: #dc3545 !important;"></i> ユーザー名は必須です。</small>';
+        passwordError.innerHTML = '<small style="color: #dc3545 !important;"><i class="fas fa-exclamation-triangle" style="color: #dc3545 !important;"></i> パスワードは必須です。</small>';
+    }
+    
+    // フィールドフォーカス時のイベントリスナー（エラーをクリア）
+    usernameInput.addEventListener('focus', function() {
+        // loginErrorは削除済み
+    });
+    
+    passwordInput.addEventListener('focus', function() {
+        // loginErrorは削除済み
+    });
+    
+    // 初期状態でエラーをクリア
+    resetErrorMessages();
+    hideError(usernameError);
+    hideError(passwordError);
+});
+</script>
+
+<style>
+/* ログイン画面専用スタイル */
+.container, .card, .card-header, .card-body {
+    /* background-color: #ffffff !important; */
+    color: #212529 !important;
+}
+
+.btn-primary {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: #ffffff !important;
+}
+
+.form-control {
+    /* background-color: #ffffff !important; */
+    border-color: #ced4da !important;
+    color: #212529 !important;
+}
+
+.form-control:focus {
+    /* background-color: #ffffff !important; */
+    border-color: #86b7fe !important;
+    color: #212529 !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* カスタムバリデーションスタイル - 詳細度を高くして確実に適用 */
+.container .card .card-body .is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.container .card .card-body .is-valid {
+    border-color: #198754 !important;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+}
+
+/* エラーメッセージスタイル - 最高詳細度で確実に赤文字 */
+body .container .card .card-body .text-danger,
+body .container .card .card-body #username-error,
+body .container .card .card-body #password-error,
+body .container .card .card-body #username-error small,
+body .container .card .card-body #password-error small,
+body .container .card .card-body #username-error *,
+body .container .card .card-body #password-error * {
+    color: #dc3545 !important;
+    font-weight: 500 !important;
+}
+
+/* アイコンも確実に赤色 */
+body .container .card .card-body .text-danger i,
+body .container .card .card-body #username-error i,
+body .container .card .card-body #password-error i {
+    color: #dc3545 !important;
+    margin-right: 5px !important;
+    animation: pulse 1s infinite !important;
+}
+
+/* アニメーション */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* ログインエラー専用スタイル */
+#login-error {
+    border: 2px solid #dc3545 !important;
+    background-color: #f8d7da !important;
+    color: #721c24 !important;
+    border-radius: 8px !important;
+    margin-bottom: 20px !important;
+}
+
+#login-error i {
+    color: #dc3545 !important;
+    margin-right: 8px !important;
+}
+
+/* ダークテーマ対応 */
+body.theme-dark #login-error {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    border-color: #ff6b6b !important;
+    color: #ff6b6b !important;
+}
+
+body.theme-dark #login-error i {
+    color: #ff6b6b !important;
+}
+
+/* ボタン振動アニメーションは削除済み */
+
+/* アイコンの点滅アニメーション */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ログインボタンのホバー効果 */
+.btn-primary:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0,123,255,0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* ダークテーマ対策 - body.theme-darkがある場合も対応 */
+body.theme-dark .container .card .card-body .text-danger,
+body.theme-dark .container .card .card-body #username-error,
+body.theme-dark .container .card .card-body #password-error,
+body.theme-dark .container .card .card-body #username-error small,
+body.theme-dark .container .card .card-body #password-error small,
+body.theme-dark .container .card .card-body #username-error *,
+body.theme-dark .container .card .card-body #password-error * {
+    color: #ff6b6b !important;
+    background-color: transparent !important;
+}
+
+body.theme-dark .container .card .card-body .text-danger i,
+body.theme-dark .container .card .card-body #username-error i,
+body.theme-dark .container .card .card-body #password-error i {
+    color: #ff6b6b !important;
+}
+</style>
+{% endblock %}

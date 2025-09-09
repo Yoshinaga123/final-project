@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+    /* 新規棋譜作成ページのダークモード対応 - より白い文字 */
+    body.theme-dark .form-control {
+        background-color: var(--theme-bg-secondary) !important;
+        border-color: var(--theme-border) !important;
+        color: #ffffff !important;
+    }
+
+    body.theme-dark .form-control:focus {
+        background-color: var(--theme-bg-secondary) !important;
+        border-color: #79c0ff !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 0.25rem rgba(121, 192, 255, 0.25) !important;
+    }
+
+    body.theme-dark .form-select {
+        background-color: var(--theme-bg-secondary) !important;
+        border-color: var(--theme-border) !important;
+        color: #ffffff !important;
+    }
+
+    body.theme-dark .form-select:focus {
+        background-color: var(--theme-bg-secondary) !important;
+        border-color: #79c0ff !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 0.25rem rgba(121, 192, 255, 0.25) !important;
+    }
+
+    body.theme-dark label {
+        color: #ffffff !important;
+        font-weight: 500;
+    }
+
+    body.theme-dark h4 {
+        color: #ffffff !important;
+    }
+
+    body.theme-dark textarea::placeholder {
+        color: #b0b0b0 !important;
+    }
+
+    body.theme-dark input::placeholder {
+        color: #b0b0b0 !important;
+    }
+
+    /* 将棋盤の背景色調整 */
+    body.theme-dark #board-1 {
+        background-color: var(--theme-bg-secondary);
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 20px;
+    }
+
+    /* 全体のテキストを白く */
+    body.theme-dark .container {
+        color: #ffffff !important;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-upload"></i> 棋譜アップロード</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="mb-3">
+                            <label for="title" class="form-label">タイトル</label>
+                            <input name="title" id="title" class="form-control" 
+                                   placeholder="例: 詰将棋_相馬康幸作" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fmt" class="form-label">形式</label>
+                            <select name="format" id="fmt" class="form-select">
+                                <option value="kif" selected>KIF（自動補正あり）</option>
+                                <option value="ki2">KI2</option>
+                                <option value="csa">CSA</option>
+                                <option value="jkf">JKF(JSON)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="kifu" class="form-label">棋譜テキスト</label>
+                            <textarea name="kifu" id="kifu" rows="12" class="form-control"
+                                      placeholder="KIF/KI2/CSA/JKFのいずれかを貼り付けてください" required></textarea>
+                            <div class="form-text">
+                                <small>棋譜データを上記のテキストエリアに貼り付けてください。KIF形式の場合、自動的に補正されます。</small>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 保存
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chess-board"></i> プレビュー</h5>
+                </div>
+                <div class="card-body">
+                    <div id="board-1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('input', function(e){
+  if(e.target && e.target.id==='kifu'){
+    try{ KifuForJS.load({ kifu: e.target.value }, 'board-1'); }catch(_){}
+  }
+});
+</script>
+{% endblock %}
+.container {
+    padding-bottom: 80px;
+}

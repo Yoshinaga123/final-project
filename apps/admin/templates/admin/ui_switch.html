@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}テーマ切り替え{% endblock %}
+
+{% block content %}
+<style>
+    .ui-switch-container {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 30px;
+        margin: 20px 0;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #dee2e6;
+    }
+
+    .switch-option {
+        background: #ffffff;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .switch-option:hover {
+        border-color: #007bff;
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .switch-option.active {
+        border-color: #007bff;
+        background: rgba(0, 123, 255, 0.05);
+    }
+
+    .switch-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+    }
+
+    .switch-title i {
+        margin-right: 10px;
+        color: #007bff;
+    }
+
+    .switch-description {
+        color: #6c757d;
+        margin-bottom: 15px;
+        line-height: 1.6;
+    }
+
+    .switch-features {
+        list-style: none;
+        padding: 0;
+        margin: 15px 0;
+    }
+
+    .switch-features li {
+        padding: 5px 0;
+        color: #495057;
+    }
+
+    .switch-features li:before {
+        content: "✓";
+        color: #28a745;
+        font-weight: bold;
+        margin-right: 8px;
+    }
+
+    .switch-button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .switch-button:hover {
+        background: #0056b3;
+        transform: translateY(-1px);
+    }
+
+    .switch-button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .preview-section {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .preview-title {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 15px;
+    }
+
+    .theme-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .theme-card {
+        border: 2px solid transparent;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .theme-card:hover {
+        border-color: #007bff;
+        transform: scale(1.02);
+    }
+
+    .theme-header {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        padding: 0 15px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .theme-body {
+        height: 80px;
+        padding: 15px;
+        font-size: 0.75rem;
+        line-height: 1.4;
+    }
+
+    .theme-light .theme-header {
+        background: #ffffff;
+        color: #333333;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .theme-light .theme-body {
+        background: #f8f9fa;
+        color: #495057;
+    }
+
+    .theme-dark .theme-header {
+        background: #343a40;
+        color: #ffffff;
+        border-bottom: 1px solid #495057;
+    }
+
+    .theme-dark .theme-body {
+        background: #495057;
+        color: #f8f9fa;
+    }
+
+    .current-settings {
+        background: rgba(40, 167, 69, 0.1);
+        border: 1px solid #28a745;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 20px 0;
+    }
+
+    .current-settings h5 {
+        color: #28a745;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="fas fa-palette"></i>
+                テーマ切り替え設定
+            </h1>
+            
+            <div class="current-settings">
+                <h5><i class="fas fa-info-circle"></i> 現在の設定</h5>
+                <p class="mb-0">
+                    <strong>テーマ:</strong> <span id="current-theme">ライトモード</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="ui-switch-container">
+                <h3 class="mb-4">
+                    <i class="fas fa-moon"></i>
+                    テーマ切り替え
+                </h3>
+                
+                <div class="switch-option" data-theme="light">
+                    <div class="switch-title">
+                        <i class="fas fa-sun"></i>
+                        ライトモード
+                    </div>
+                    <div class="switch-description">
+                        明るい背景で見やすい標準テーマです。長時間の作業に適しています。
+                    </div>
+                    <ul class="switch-features">
+                        <li>明るい背景色</li>
+                        <li>高いコントラスト</li>
+                        <li>目に優しい配色</li>
+                    </ul>
+                    <button class="switch-button" onclick="setTheme('light')">
+                        適用する
+                    </button>
+                </div>
+
+                <div class="switch-option" data-theme="dark">
+                    <div class="switch-title">
+                        <i class="fas fa-moon"></i>
+                        ダークモード
+                    </div>
+                    <div class="switch-description">
+                        暗い背景で目の疲労を軽減します。夜間作業や長時間利用に最適です。
+                    </div>
+                    <ul class="switch-features">
+                        <li>暗い背景色</li>
+                        <li>目の疲労軽減</li>
+                        <li>省電力効果</li>
+                    </ul>
+                    <button class="switch-button" onclick="setTheme('dark')">
+                        適用する
+                    </button>
+                </div>
+
+                <div class="switch-option" data-theme="auto">
+                    <div class="switch-title">
+                        <i class="fas fa-adjust"></i>
+                        自動切り替え
+                    </div>
+                    <div class="switch-description">
+                        システムの設定に合わせて自動的にテーマを切り替えます。
+                    </div>
+                    <ul class="switch-features">
+                        <li>システム連動</li>
+                        <li>時間帯対応</li>
+                        <li>自動最適化</li>
+                    </ul>
+                    <button class="switch-button" onclick="setTheme('auto')">
+                        適用する
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="preview-section">
+                <div class="preview-title">
+                    <i class="fas fa-eye"></i>
+                    テーマプレビュー
+                </div>
+                <div class="theme-preview">
+                    <div class="theme-card theme-light" onclick="setTheme('light')">
+                        <div class="theme-header">ライトテーマ</div>
+                        <div class="theme-body">
+                            明るい背景色を使用した<br>
+                            標準的なテーマです。<br>
+                            長時間の利用に適しています。
+                        </div>
+                    </div>
+                    <div class="theme-card theme-dark" onclick="setTheme('dark')">
+                        <div class="theme-header">ダークテーマ</div>
+                        <div class="theme-body">
+                            暗い背景色を使用した<br>
+                            目に優しいテーマです。<br>
+                            夜間利用に最適です。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>注意:</strong> 
+                設定変更は即座に反映されます。ブラウザのローカルストレージに保存され、次回アクセス時も設定が維持されます。
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// テーマ設定の管理
+class ThemeSettings {
+    constructor() {
+        this.settings = this.loadSettings();
+        this.applyTheme();
+        this.updateCurrentDisplay();
+    }
+
+    loadSettings() {
+        const defaultSettings = {
+            theme: 'light'
+        };
+        
+        try {
+            const saved = localStorage.getItem('theme-settings');
+            return saved ? Object.assign(defaultSettings, JSON.parse(saved)) : defaultSettings;
+        } catch (e) {
+            console.warn('テーマ設定の読み込みに失敗しました:', e);
+            return defaultSettings;
+        }
+    }
+
+    saveSettings() {
+        try {
+            localStorage.setItem('theme-settings', JSON.stringify(this.settings));
+        } catch (e) {
+            console.error('テーマ設定の保存に失敗しました:', e);
+        }
+    }
+
+    setTheme(theme) {
+        this.settings.theme = theme;
+        this.saveSettings();
+        this.applyTheme();
+        this.updateCurrentDisplay();
+        this.showSuccessMessage(`テーマを「${this.getThemeName(theme)}」に変更しました`);
+    }
+
+    applyTheme() {
+        const body = document.body;
+        body.className = body.className.replace(/theme-\w+/g, '');
+        
+        if (this.settings.theme === 'auto') {
+            const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            body.classList.add(isDark ? 'theme-dark' : 'theme-light');
+        } else {
+            body.classList.add(`theme-${this.settings.theme}`);
+        }
+    }
+
+    updateCurrentDisplay() {
+        document.getElementById('current-theme').textContent = this.getThemeName(this.settings.theme);
+        
+        // アクティブな選択肢をハイライト
+        document.querySelectorAll('.switch-option').forEach(option => {
+            option.classList.remove('active');
+        });
+        
+        document.querySelector(`[data-theme="${this.settings.theme}"]`)?.classList.add('active');
+    }
+
+    getThemeName(theme) {
+        const names = {
+            'light': 'ライトモード',
+            'dark': 'ダークモード',
+            'auto': '自動切り替え'
+        };
+        return names[theme] || theme;
+    }
+
+    showSuccessMessage(message) {
+        // Bootstrap toastまたはアラートで成功メッセージを表示
+        if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+            // Toastが利用可能な場合
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-success border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            
+            let toastContainer = document.querySelector('.toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            // Toast削除
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        } else {
+            // フォールバック: 単純なアラート
+            alert(message);
+        }
+    }
+}
+
+// グローバル関数（ボタンから呼び出される）
+let themeSettings;
+
+function setTheme(theme) {
+    themeSettings.setTheme(theme);
+}
+
+// 初期化
+document.addEventListener('DOMContentLoaded', function() {
+    themeSettings = new ThemeSettings();
+    
+    // システムのカラースキーム変更を監視
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addListener(() => {
+            if (themeSettings.settings.theme === 'auto') {
+                themeSettings.applyTheme();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

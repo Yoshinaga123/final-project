@@ -1,0 +1,18 @@
+{
+  "image_filename": "20250909_111416_643580a7.webp",
+  "updated_at": "2025-09-09T02:14:22Z",
+  "model": "simulated",
+  "results": [
+    {
+      "class": "car",
+      "confidence": 0.86,
+      "bbox": {
+        "x": 98,
+        "y": 108,
+        "width": 190,
+        "height": 62
+      }
+    }
+  ],
+  "count": 1
+}

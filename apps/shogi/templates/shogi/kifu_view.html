@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+{% block title %}{{ file_info.filename }} - 棋譜表示{% endblock %}
+
+{% block head %}
+<style>
+    /* 棋譜テキスト表示のダークモード対応 - より白い文字 */
+    body.theme-dark #kifu-text {
+        color: #ffffff !important;
+        background-color: var(--theme-bg-secondary) !important;
+        border: 1px solid var(--theme-border) !important;
+    }
+
+    /* カードヘッダーとボディのダークモード対応 */
+    body.theme-dark .card-header {
+        background-color: var(--theme-bg-secondary) !important;
+        border-color: var(--theme-border) !important;
+        color: #ffffff !important;
+    }
+
+    body.theme-dark .card-header h5 {
+        color: #ffffff !important;
+    }
+
+    body.theme-dark .card-body {
+        background-color: var(--theme-bg-primary) !important;
+        color: #ffffff !important;
+    }
+
+    /* ファイル情報の文字をより白く */
+    body.theme-dark h2 {
+        color: #ffffff !important;
+    }
+
+    body.theme-dark .text-muted {
+        color: #e0e0e0 !important;
+    }
+
+    /* ファイル情報の詳細もより明るく */
+    body.theme-dark small {
+        color: #f0f0f0 !important;
+    }
+
+    /* すべてのテキストを白に */
+    body.theme-dark .container h2,
+    body.theme-dark .container small,
+    body.theme-dark .card h5 {
+        color: #ffffff !important;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- ヘッダー -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-chess-board"></i> {{ file_info.filename }}</h2>
+                    <small class="text-muted">
+                        形式: {{ file_info.format.upper() }} | 
+                        サイズ: {{ "%.1f"|format(file_info.size / 1024) }} KB | 
+                        更新: {{ file_info.modified }}
+                    </small>
+                </div>
+                <div>
+                    <a href="{{ url_for('shogi.kifu_list') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list"></i> 一覧に戻る
+                    </a>
+                    <button class="btn btn-outline-primary download-kifu-btn" data-filename="{{ file_info.filename }}">
+                        <i class="fas fa-download"></i> ダウンロード
+                    </button>
+                </div>
+            </div>
+
+
+            <div class="row">
+                <!-- 将棋盤 -->
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-chess-board"></i> 将棋盤</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <div id="board-1" style="max-width: 100%;" data-filename="{{ file_info.filename }}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 棋譜テキスト -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-file-alt"></i> 棋譜テキスト</h5>
+                        </div>
+                        <div class="card-body">
+                            <pre id="kifu-text" style="max-height: 400px; overflow-y: auto; font-size: 0.9em; white-space: pre-wrap;" data-filename="{{ file_info.filename }}">{{ kifu_content }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+console.log("=== KIFU VIEW DEBUG - Template loaded ===");
+
+// グローバル変数
+let kifuData = null;
+let currentMove = 0;
+let totalMoves = 0;
+let isPlaying = false;
+let playInterval = null;
+
+// インラインでダウンロード機能を実装
+function downloadKifuDirect(filename) {
+    console.log("=== DIRECT DOWNLOAD DEBUG ===");
+    console.log("Function called with filename:", filename);
+    
+    try {
+        const kifuTextElement = document.getElementById('kifu-text');
+        if (kifuTextElement) {
+            const content = kifuTextElement.textContent;
+            
+            if (content && content.trim().length > 0) {
+                console.log("Creating download...");
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename || "{{ file_info.filename }}";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                console.log("Download completed");
+                return true;
+            } else {
+                console.error("No content to download");
+                alert('ダウンロードする棋譜データがありません。');
+                return false;
+            }
+        } else {
+            console.error("kifu-text element not found");
+            alert('棋譜テキスト要素が見つかりません。');
+            return false;
+        }
+    } catch (error) {
+        console.error("Download error:", error);
+        alert('ダウンロード中にエラーが発生しました: ' + error.message);
+        return false;
+    }
+}
+
+// 棋譜操作機能
+function updateMoveInfo() {
+    const boardElement = document.getElementById('board-1');
+    if (boardElement && boardElement.kifu) {
+        try {
+            const kifu = boardElement.kifu;
+            totalMoves = kifu.getMoves ? kifu.getMoves().length : 0;
+            currentMove = kifu.getCurrentMove ? kifu.getCurrentMove() : 0;
+            console.log(`Move info: ${currentMove} / ${totalMoves}`);
+        } catch (error) {
+            console.error('Error updating move info:', error);
+        }
+    } else {
+        console.log('KifuForJS not ready yet');
+    }
+}
+
+function goToStart() {
+    try {
+        const board = document.getElementById('board-1');
+        if (board && board.kifu && typeof board.kifu.goTo === 'function') {
+            board.kifu.goTo(0);
+            updateMoveInfo();
+        } else {
+            console.log('KifuForJS not ready or goTo method not available');
+        }
+    } catch (error) {
+        console.error('Error in goToStart:', error);
+    }
+}
+
+function goToPrevious() {
+    try {
+        const board = document.getElementById('board-1');
+        if (board && board.kifu && typeof board.kifu.goTo === 'function') {
+            board.kifu.goTo(Math.max(0, currentMove - 1));
+            updateMoveInfo();
+        } else {
+            console.log('KifuForJS not ready or goTo method not available');
+        }
+    } catch (error) {
+        console.error('Error in goToPrevious:', error);
+    }
+}
+
+function goToNext() {
+    try {
+        const board = document.getElementById('board-1');
+        if (board && board.kifu && typeof board.kifu.goTo === 'function') {
+            board.kifu.goTo(Math.min(totalMoves, currentMove + 1));
+            updateMoveInfo();
+        } else {
+            console.log('KifuForJS not ready or goTo method not available');
+        }
+    } catch (error) {
+        console.error('Error in goToNext:', error);
+    }
+}
+
+function goToEnd() {
+    try {
+        const board = document.getElementById('board-1');
+        if (board && board.kifu && typeof board.kifu.goTo === 'function') {
+            board.kifu.goTo(totalMoves);
+            updateMoveInfo();
+        } else {
+            console.log('KifuForJS not ready or goTo method not available');
+        }
+    } catch (error) {
+        console.error('Error in goToEnd:', error);
+    }
+}
+
+function togglePlayPause() {
+    if (isPlaying) {
+        pausePlayback();
+    } else {
+        startPlayback();
+    }
+}
+
+function startPlayback() {
+    if (currentMove >= totalMoves) {
+        goToStart();
+    }
+    
+    isPlaying = true;
+    console.log('Playback started');
+    
+    playInterval = setInterval(() => {
+        if (currentMove < totalMoves) {
+            goToNext();
+        } else {
+            pausePlayback();
+        }
+    }, 1000);
+}
+
+function pausePlayback() {
+    isPlaying = false;
+    console.log('Playback paused');
+    
+    if (playInterval) {
+        clearInterval(playInterval);
+        playInterval = null;
+    }
+}
+
+// DOM読み込み完了時の処理
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("=== KIFU VIEW DIRECT DEBUG - DOM Content Loaded ===");
+    console.log("KifuForJS available:", typeof KifuForJS);
+    console.log("KifuForJS.load available:", typeof KifuForJS?.load);
+    
+    // ダウンロードボタンにイベント設定
+    const downloadButtons = document.querySelectorAll('.download-kifu-btn');
+    console.log("Download buttons found:", downloadButtons.length);
+    
+    downloadButtons.forEach(function(btn, index) {
+        const filename = btn.dataset.filename;
+        console.log(`Setting up button ${index}: ${filename}`);
+        
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log("Download button clicked:", filename);
+            downloadKifuDirect(filename);
+        });
+    });
+    
+    // KifuForJSで棋譜を読み込み（表示・再生機能の復旧）
+    if (typeof KifuForJS !== 'undefined' && typeof KifuForJS.load === 'function') {
+        try {
+            console.log("Loading kifu with KifuForJS...");
+            const filename = "{{ file_info.filename }}";
+            const isTsume = filename.includes("詰") || filename.toLowerCase().includes("tsume");
+            
+            console.log("Filename:", filename);
+            console.log("Is tsume:", isTsume);
+            
+            // テンプレート内容から直接読み込み（最優先）
+            const kifuTextElement = document.getElementById('kifu-text');
+            if (kifuTextElement) {
+                const kifuContent = kifuTextElement.textContent.trim();
+                console.log("Kifu content length:", kifuContent.length);
+                
+                if (kifuContent.length > 0) {
+                    const contentOptions = {
+                        kifu: kifuContent
+                    };
+                    
+                    if (isTsume) {
+                        contentOptions.mode = "tsume";
+                        console.log("Enabling tsume mode");
+                    }
+                    
+                    KifuForJS.load(contentOptions, "board-1");
+                    console.log("Template content load completed");
+                    
+                    setTimeout(() => {
+                        updateMoveInfo();
+                    }, 1500);
+                    
+                    return; // 成功したので処理終了
+                }
+            }
+            
+            // フォールバック: APIから読み込み
+            console.log("Fallback: Loading from API...");
+            const loadOptions = {
+                src: `/shogi/api/kifu/${encodeURIComponent(filename)}`
+            };
+            
+            if (isTsume) {
+                loadOptions.mode = "tsume";
+            }
+            
+            KifuForJS.load(loadOptions, "board-1");
+            console.log("API load completed");
+            
+            setTimeout(() => {
+                updateMoveInfo();
+            }, 2000);
+            
+        } catch (error) {
+            console.error("KifuForJS load failed:", error);
+            alert('棋譜の読み込みに失敗しました。');
+        }
+    } else {
+        console.error("KifuForJS is not available");
+        alert('KifuForJSライブラリが読み込まれていません。');
+    }
+});
+</script>
+{% endblock %}

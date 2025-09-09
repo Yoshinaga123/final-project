@@ -1,0 +1,28 @@
+{
+  "image_filename": "20250909_111606_b1574690.jpg",
+  "updated_at": "2025-09-09T02:16:11Z",
+  "model": "simulated",
+  "results": [
+    {
+      "class": "dog",
+      "confidence": 0.81,
+      "bbox": {
+        "x": 106,
+        "y": 270,
+        "width": 50,
+        "height": 169
+      }
+    },
+    {
+      "class": "dog",
+      "confidence": 0.76,
+      "bbox": {
+        "x": 240,
+        "y": 245,
+        "width": 64,
+        "height": 183
+      }
+    }
+  ],
+  "count": 2
+}

@@ -1,0 +1,58 @@
+{
+  "image_filename": "20250909_151957_47eada80.png",
+  "updated_at": "2025-09-09T06:19:57Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "cat",
+      "confidence": 0.82,
+      "bbox": {
+        "x": 26,
+        "y": 52,
+        "width": 84,
+        "height": 103
+      }
+    },
+    {
+      "class": "chair",
+      "confidence": 0.7,
+      "bbox": {
+        "x": 0,
+        "y": 506,
+        "width": 55,
+        "height": 124
+      }
+    },
+    {
+      "class": "vase",
+      "confidence": 0.58,
+      "bbox": {
+        "x": 89,
+        "y": 307,
+        "width": 21,
+        "height": 33
+      }
+    },
+    {
+      "class": "potted plant",
+      "confidence": 0.37,
+      "bbox": {
+        "x": 76,
+        "y": 271,
+        "width": 45,
+        "height": 69
+      }
+    },
+    {
+      "class": "vase",
+      "confidence": 0.3,
+      "bbox": {
+        "x": 41,
+        "y": 125,
+        "width": 22,
+        "height": 30
+      }
+    }
+  ],
+  "count": 5
+}

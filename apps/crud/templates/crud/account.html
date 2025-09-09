@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}アカウント設定{% endblock %}
+
+{% block body %}
+    <section id="account">
+        <div class="row my-4">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h3 class="mb-3">アカウント設定</h3>
+                        <p class="text-muted mb-4">ユーザー情報を更新できます。</p>
+
+                        <form method="POST" action="{{ url_for('crud.account') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="action" value="update">
+                            <div class="mb-3">
+                                <label class="form-label">ユーザー名</label>
+                                <input type="text" class="form-control" name="username" value="{{ user.username if user else '' }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">メールアドレス</label>
+                                <input type="email" class="form-control" name="email" value="{{ user.email if user else '' }}" required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">新しいパスワード</label>
+                                    <input type="password" class="form-control" name="password" autocomplete="new-password">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">パスワード確認</label>
+                                    <input type="password" class="form-control" name="password_confirm" autocomplete="new-password">
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">更新する</button>
+                            </div>
+                        </form>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h5 class="mb-1 text-danger">アカウント削除</h5>
+                                <p class="mb-0 text-muted">この操作は取り消せません。</p>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#del_modal">削除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="modal fade" id="del_modal" tabindex="-1" aria-labelledby="del_modal_label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="del_modal_label">削除の確認</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger" role="alert">
+                        <h6 class="alert-heading">⚠️ 警告</h6>
+                        <p class="mb-2">本当にアカウントを削除しますか？</p>
+                        <hr>
+                        <p class="mb-0"><strong>この操作は取り消せません。</strong></p>
+                        <ul class="mb-0 mt-2">
+                            <li>すべてのデータが完全に削除されます</li>
+                            <li>ログインできなくなります</li>
+                            <li>復元は不可能です</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <form method="POST" action="{{ url_for('crud.account') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('本当にアカウントを削除しますか？この操作は取り消せません。')">削除する</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

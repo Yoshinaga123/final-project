@@ -1,0 +1,173 @@
+{% extends "detector/base.html" %}
+{% block title %}物体検知 - Object Detection{% endblock %}
+
+{% block detector_head %}
+<style>
+    /* 物体検知ページのスタイル */
+    .detection-card {
+        margin-bottom: 30px;
+    }
+    
+    .feature-icon {
+        font-size: 3rem;
+        color: var(--bs-primary);
+        margin-bottom: 1rem;
+    }
+    
+    .feature-card {
+        transition: transform 0.3s ease;
+        height: 100%;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* ダークモード対応 */
+    body.theme-dark .feature-card {
+        background-color: var(--theme-bg-secondary) !important;
+        border-color: var(--theme-border) !important;
+    }
+    
+    body.theme-dark .feature-card .card-body {
+        color: #ffffff !important;
+    }
+    
+    body.theme-dark .feature-icon {
+        color: #79c0ff !important;
+    }
+</style>
+{% endblock %}
+
+{% block detector_content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h1><i class="bi bi-eye"></i> 物体検知システム</h1>
+            <p class="lead">AI技術を使用して画像内の物体を自動検知します</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card feature-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-upload feature-icon"></i>
+                    <h5 class="card-title">画像アップロード</h5>
+                    <p class="card-text">JPG、PNG、GIF等の画像ファイルをアップロードして物体検知を開始します。</p>
+                    <a href="{{ url_for('detector.upload') }}" class="btn btn-primary">
+                        <i class="bi bi-upload"></i> アップロード開始
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card feature-card text-center">
+                <div class="card-body">
+                    <i class="bi bi-images feature-icon"></i>
+                    <h5 class="card-title">画像一覧</h5>
+                    <p class="card-text">アップロードされた画像を一覧で確認できます。過去の画像も簡単に閲覧可能です。</p>
+                    <a href="{{ url_for('detector.gallery') }}" class="btn btn-success">
+                        <i class="bi bi-images"></i> 画像一覧を見る
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card detection-card">
+                <div class="card-header">
+                    <h5><i class="bi bi-info-circle"></i> 対応している機能</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-check2 text-success"></i> 検知可能な物体</h6>
+                            <ul>
+                                <li>人物（Person）</li>
+                                <li>車両（Car, Bicycle）</li>
+                                <li>動物（Dog, Cat, Bird等）</li>
+                                <li>家具・日用品</li>
+                                <li>その他多数の物体</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="bi bi-image text-primary"></i> 対応ファイル形式</h6>
+                            <ul>
+                                <li>JPEG / JPG</li>
+                                <li>PNG</li>
+                                <li>GIF</li>
+                                <li>BMP</li>
+                                <li>WebP</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4 class="mb-3"><i class="bi bi-clock-history"></i> 最近の画像</h4>
+            {% if images %}
+            <div class="row">
+                {% for image in images %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="{{ url_for('detector.uploaded_file', filename=image.filename) }}" class="card-img-top" alt="{{ image.original_filename or image.filename }}" style="height: 200px; object-fit: cover;">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ image.original_filename or image.filename }}</h6>
+                            {% if results_meta and results_meta.get(image.id) %}
+                            <div class="mb-2">
+                                <span class="badge bg-success">
+                                    <i class="bi bi-bounding-box"></i> 検出 {{ results_meta[image.id].count }} 件
+                                </span>
+                                {% if results_meta[image.id].updated_at %}
+                                <small class="text-muted ms-2">
+                                    最終検知: {{ results_meta[image.id].updated_at }}
+                                </small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('detector.detect', image_id=image.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-search"></i> 検知へ
+                                </a>
+                                <form method="post" action="{{ url_for('detector.delete_image', image_id=image.id) }}" onsubmit="return confirm('この画像を削除しますか？')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> 削除
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="text-end">
+                <a href="{{ url_for('detector.gallery') }}" class="btn btn-secondary">
+                    <i class="bi bi-images"></i> すべて表示
+                </a>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-images fs-1"></i>
+                <p>まだ画像がありません。まずはアップロードしてください。</p>
+                <a href="{{ url_for('detector.upload') }}" class="btn btn-primary"><i class="bi bi-upload"></i> 画像をアップロード</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}ユーザー管理{% endblock %}
+
+{% block content %}
+    <section id="admin-users">
+        <div class="container my-4">
+            <!-- ページヘッダー -->
+            <div class="row mb-4">
+                <div class="col">
+                    <h2 class="mb-2">ユーザー管理</h2>
+                    <p class="text-muted">システム内のユーザーを管理できます</p>
+                </div>
+
+                <div class="col-auto">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="bi bi-plus-circle"></i> 新規ユーザー追加
+                    </button>
+                </div>
+            </div>
+
+            <!-- ユーザー一覧テーブル -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ユーザー名</th>
+                                    <th>メールアドレス</th>
+                                    <th>所属</th>
+                                    <th>作成日</th>
+                                    <th>最終ログイン</th>
+                                    <th>アクセス回数</th>
+                                    <th>ステータス</th>
+                                    <th>試行回数</th>
+                                    <th>権限</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.id }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.organization or '-' }}</td>
+                                    <td>{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else '-' }}</td>
+                                    <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else '-' }}</td>
+                                    <td>{{ user.access_count }}</td>
+                                    <td>
+                                        {% if user.status == 'active' %}
+                                            <span class="badge bg-success">有効</span>
+                                        {% elif user.status == 'inactive' %}
+                                            <span class="badge bg-secondary">無効</span>
+                                        {% elif user.status == 'locked' %}
+                                            <span class="badge bg-danger">ロック</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">不明</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.login_attempts }}</td>
+                                    <td>
+                                        {% if user.role == 'admin' %}
+                                            <span class="badge bg-danger">管理者</span>
+                                        {% elif user.role == 'user' %}
+                                            <span class="badge bg-primary">一般</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ user.role }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-primary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editUserModal" 
+                                                    data-user-id="{{ user.id }}"
+                                                    data-user-username="{{ user.username }}"
+                                                    data-user-email="{{ user.email }}"
+                                                    data-user-organization="{{ user.organization or '' }}"
+                                                    data-user-role="{{ user.role }}"
+                                                    data-user-is-active="{{ user.is_active|lower }}">
+                                                編集
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteUserModal"
+                                                    data-user-id="{{ user.id }}"
+                                                    data-user-username="{{ user.username }}">
+                                                削除
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="11" class="text-center text-muted py-4">
+                                        ユーザーが登録されていません
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新規ユーザー追加モーダル -->
+        <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addUserModalLabel">新規ユーザー追加</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('admin.admin_users') }}">
+                        <input type="hidden" name="action" value="add">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">ユーザー名 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="username" name="username" required minlength="3" maxlength="64">
+                                <div class="form-text">3文字以上64文字以内で入力してください</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">メールアドレス <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">パスワード <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="password" name="password" required minlength="6">
+                                <div class="form-text">6文字以上で入力してください</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password_confirm" class="form-label">パスワード確認 <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="organization" class="form-label">所属</label>
+                                <input type="text" class="form-control" id="organization" name="organization" maxlength="100">
+                            </div>
+                            <div class="mb-3">
+                                <label for="role" class="form-label">権限</label>
+                                <select class="form-select" id="role" name="role">
+                                    <option value="user">一般ユーザー</option>
+                                    <option value="admin">管理者</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                            <button type="submit" class="btn btn-primary">追加</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ユーザー編集モーダル -->
+        <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editUserModalLabel">ユーザー編集</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{{ url_for('admin.admin_users') }}">
+                        <input type="hidden" name="action" value="edit">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="user_id" id="edit_user_id">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="edit_username" class="form-label">ユーザー名 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="edit_username" name="username" required minlength="3" maxlength="64">
+                                <div class="form-text">3文字以上64文字以内で入力してください</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_email" class="form-label">メールアドレス <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="edit_email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_organization" class="form-label">所属</label>
+                                <input type="text" class="form-control" id="edit_organization" name="organization" maxlength="100">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_role" class="form-label">権限</label>
+                                <select class="form-select" id="edit_role" name="role">
+                                    <option value="user">一般ユーザー</option>
+                                    <option value="admin">管理者</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="edit_is_active" name="is_active">
+                                    <label class="form-check-label" for="edit_is_active">
+                                        アカウントを有効にする
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_password" class="form-label">新しいパスワード（変更しない場合は空欄）</label>
+                                <input type="password" class="form-control" id="edit_password" name="password" minlength="6">
+                                <div class="form-text">6文字以上で入力してください</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_password_confirm" class="form-label">パスワード確認</label>
+                                <input type="password" class="form-control" id="edit_password_confirm" name="password_confirm">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                            <button type="submit" class="btn btn-primary">更新</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ユーザー削除確認モーダル -->
+        <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteUserModalLabel">ユーザー削除の確認</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>ユーザー「<span id="delete_username"></span>」を削除しますか？</p>
+                        <p class="text-danger">この操作は取り消せません。</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                        <form method="POST" action="{{ url_for('admin.admin_users') }}" style="display: inline;">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="user_id" id="delete_user_id">
+                            <button type="submit" class="btn btn-danger">削除</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 管理画面専用のスタイル -->
+    <style>
+        /* 管理画面のテーブル背景色をグレーに変更 */
+        #admin-users .table {
+            background-color: #4a5568 !important;
+        }
+        
+        #admin-users .table td,
+        #admin-users .table th {
+            background-color: #4a5568 !important;
+            color: #ffffff !important;
+        }
+        
+        #admin-users .table-striped > tbody > tr:nth-of-type(odd) > td {
+            background-color: #5a6478 !important;
+        }
+        
+        #admin-users .table-striped > tbody > tr:nth-of-type(even) > td {
+            background-color: #4a5568 !important;
+        }
+        
+        /* カード背景も調整 */
+        #admin-users .card {
+            background-color: #4a5568 !important;
+        }
+        
+        #admin-users .card-body {
+            background-color: #4a5568 !important;
+        }
+    </style>
+
+    <!-- JavaScript for modal data handling -->
+     
+    <script>
+        // 編集モーダルにデータを設定
+        document.getElementById('editUserModal').addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const userId = button.getAttribute('data-user-id');
+            const username = button.getAttribute('data-user-username');
+            const email = button.getAttribute('data-user-email');
+            const organization = button.getAttribute('data-user-organization') || '';
+            const role = button.getAttribute('data-user-role') || 'user';
+            const isActive = button.getAttribute('data-user-is-active') === 'true';
+            
+            document.getElementById('edit_user_id').value = userId;
+            document.getElementById('edit_username').value = username;
+            document.getElementById('edit_email').value = email;
+            document.getElementById('edit_organization').value = organization;
+            document.getElementById('edit_role').value = role;
+            document.getElementById('edit_is_active').checked = isActive;
+        });
+
+        // 削除モーダルにデータを設定
+        document.getElementById('deleteUserModal').addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const userId = button.getAttribute('data-user-id');
+            const username = button.getAttribute('data-user-username');
+            
+            document.getElementById('delete_user_id').value = userId;
+            document.getElementById('delete_username').textContent = username;
+        });
+    </script>
+    
+{% endblock %}

@@ -1,0 +1,28 @@
+{
+  "image_filename": "20250909_152630_bc57fda5.jfif",
+  "updated_at": "2025-09-09T06:26:46Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "bed",
+      "confidence": 0.87,
+      "bbox": {
+        "x": 0,
+        "y": 2,
+        "width": 596,
+        "height": 729
+      }
+    },
+    {
+      "class": "cat",
+      "confidence": 0.64,
+      "bbox": {
+        "x": 140,
+        "y": 156,
+        "width": 383,
+        "height": 553
+      }
+    }
+  ],
+  "count": 2
+}

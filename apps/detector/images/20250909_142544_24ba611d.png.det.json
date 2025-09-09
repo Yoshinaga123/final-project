@@ -1,0 +1,28 @@
+{
+  "image_filename": "20250909_142544_24ba611d.png",
+  "updated_at": "2025-09-09T05:25:44Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "tv",
+      "confidence": 0.39,
+      "bbox": {
+        "x": 8,
+        "y": 7,
+        "width": 1439,
+        "height": 708
+      }
+    },
+    {
+      "class": "laptop",
+      "confidence": 0.29,
+      "bbox": {
+        "x": 0,
+        "y": 7,
+        "width": 1437,
+        "height": 708
+      }
+    }
+  ],
+  "count": 2
+}

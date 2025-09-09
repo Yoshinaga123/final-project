@@ -1,0 +1,146 @@
+{# base.htmlテンプレートを継承してページの基本構造を利用 #}
+{% extends "detector/base.html" %}
+
+{# ページタイトルを設定（ブラウザのタブに表示される） #}
+{% block title %}画像ギャラリー{% endblock %}
+
+{# メインコンテンツブロック開始 #}
+{% block detector_content %}
+<!-- Bootstrapのcontainerクラスでレスポンシブな幅を設定、mt-4で上マージン追加 -->
+<div class="container mt-4">
+    <!-- Flexboxでタイトルとボタンを横並びに配置、justify-content-betweenで両端に配置 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- ページのメインタイトル -->
+        <h2>画像ギャラリー</h2>
+        <!-- 新規画像登録へのリンクボタン（Bootstrapのprimaryボタンスタイル） -->
+        <a href="{{ url_for('detector.upload') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> 画像新規登録
+        </a>
+    </div>
+    
+    <!-- 画像の件数表示（text-mutedで薄いグレー文字） -->
+    <p class="text-muted">{{ count }}枚の画像が見つかりました</p>
+    
+    {# Jinjaテンプレートの条件分岐：imagesリストが存在し空でない場合 #}
+    {% if images %}
+        <!-- Bootstrapのrowクラスでグリッドレイアウト開始 -->
+        <div class="row">
+            {# Jinjaテンプレートのforループ：imagesリストの各要素を順番に処理 #}
+            {% for image in images %}
+            <!-- col-md-4で中サイズ画面以上で4列グリッド（3枚並び）、mb-4で下マージン -->
+            <div class="col-md-4 mb-4">
+                <!-- Bootstrapのcardコンポーネントで画像を枠で囲む -->
+                <div class="card">
+                    {# Jinjaテンプレートの条件分岐：画像のfile_pathが存在する場合のみ画像表示 #}
+                    <img src="{{ url_for('detector.uploaded_file', filename=image.filename) }}" class="card-img-top" alt="{{ image.filename }}" style="height: 200px; object-fit: cover;">
+                    <!-- カードのボディ部分（画像下のテキスト領域） -->
+                    <div class="card-body">
+                        <!-- ファイル名表示（ファイル名がない場合は「ファイル名なし」） -->
+                        <h6 class="card-title">{{ image.filename or "ファイル名なし" }}</h6>
+                        {% if results_meta and results_meta.get(image.id) %}
+                        <div class="mb-2">
+                            <span class="badge bg-success">
+                                <i class="bi bi-bounding-box"></i> 検出 {{ results_meta[image.id].count }} 件
+                            </span>
+                            {% if results_meta[image.id].updated_at %}
+                            <small class="text-muted ms-2">最終検知: {{ results_meta[image.id].updated_at }}</small>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        <!-- アップロード日時の表示エリア -->
+                        <p class="card-text">
+                            <!-- small要素で小さめの文字、text-mutedで薄いグレー -->
+                            <small class="text-muted">
+                                {# Pythonのstrftimeメソッドで日時フォーマット、日時がない場合は「日付なし」 #}
+                                アップロード: {{ image.uploaded_at|jst('%Y/%m/%d %H:%M') if image.uploaded_at else "日付なし" }}
+                            </small>
+                        </p>
+                        <!-- 画像詳細ページへのリンクボタン（小サイズのアウトラインボタン） -->
+                        <a href="{{ url_for('detector.detect', image_id=image.id) }}" class="btn btn-sm btn-outline-primary">
+                            検知へ
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {# Jinjaテンプレートのelse文：画像がない場合の表示 #}
+    {% else %}
+        <!-- text-centerで中央揃え、py-5で上下にパディング -->
+        <div class="text-center py-5">
+            <!-- Font Awesomeの画像アイコン（fa-3xで3倍サイズ、text-mutedで薄いグレー、mb-3で下マージン） -->
+            <i class="bi bi-images fs-1 text-muted mb-3"></i>
+            <!-- 画像がない旨のメッセージ -->
+            <p class="text-muted">画像がまだありません</p>
+            <!-- 最初の画像アップロードを促すボタン -->
+            <a href="{{ url_for('detector.upload') }}" class="btn btn-primary">
+                <!-- Font Awesomeのアップロードアイコン -->
+                <i class="bi bi-upload"></i> 最初の画像をアップロード
+            </a>
+        </div>
+    {% endif %}
+    
+    <!-- ページ下部のナビゲーションエリア（mt-4で上マージン） -->
+    <div class="mt-4">
+        <!-- 前のページ（検知トップページ）に戻るボタン -->
+        <a href="{{ url_for('detector.index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> 戻る
+        </a>
+    </div>
+    
+    <!-- ユーザー別の画像表示セクション（HTML コメント） -->
+    {# Jinjaテンプレートの条件分岐：user_imagesリストが存在する場合 #}
+    {% if user_images %}
+        {# Jinjaテンプレートのforループ：user_imagesリストの各ユーザー画像を処理 #}
+        {% for user_image in user_images %}
+        <!-- 各ユーザーセクションの区切り（mt-5で大きめの上マージン） -->
+        <div class="mt-5">
+            <!-- ユーザー名とボタンを横並びに配置するヘッダー -->
+            <header class="d-flex justify-content-between align-items-center mb-4">
+                <!-- ユーザー名表示（Font Awesomeのユーザー画像アイコン付き） -->
+                <h3><i class="fas fa-user-images"></i> {{ user_image.username }}さんの画像</h3>
+                <!-- ボタングループ -->
+                <div>
+                    <!-- 新規画像アップロードボタン（me-2で右マージン） -->
+                    <a href="{{ url_for('detector.upload') }}" class="btn btn-primary me-2">
+                        <!-- Font Awesomeのアップロードアイコン -->
+                        <i class="fas fa-upload"></i> 新しい画像をアップロード
+                    </a>
+                    <!-- 全体ギャラリーへのリンクボタン（アウトラインスタイル） -->
+                    <a href="{{ url_for('detector.gallery') }}" class="btn btn-outline-secondary">
+                        <!-- Font Awesomeの画像アイコン -->
+                        <i class="fas fa-images"></i> 全体ギャラリー
+                    </a>
+                </div>
+            </header>
+            
+            <!-- ユーザーの画像表示用グリッド -->
+            <div class="row">
+                <!-- 1つの画像カード（col-md-4で3列グリッド、mb-4で下マージン） -->
+                <div class="col-md-4 mb-4">
+                    <!-- Bootstrapのcardコンポーネント -->
+                    <div class="card">
+                        <!-- ユーザー画像表示（200px高さ、object-fit:coverで比率保持） -->
+                        <img src="/uploads/{{ user_image.filename }}" class="card-img-top" alt="{{ user_image.filename }}" style="height: 200px; object-fit: cover;">
+                        <!-- カードのボディ部分 -->
+                        <div class="card-body">
+                            <!-- ファイル名表示 -->
+                            <h6 class="card-title">{{ user_image.filename }}</h6>
+                            <!-- アップロード日時表示 -->
+                            <p class="card-text">
+                                <!-- 小さめのグレー文字で日時表示 -->
+                                <small class="text-muted">
+                                    {# Pythonのstrftimeで日時フォーマット、存在しない場合は「日付なし」 #}
+                                    アップロード: {{ user_image.uploaded_at|jst('%Y/%m/%d %H:%M') if user_image.uploaded_at else "日付なし" }}
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+</div>
+{% endblock %}

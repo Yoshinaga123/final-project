@@ -1,0 +1,231 @@
+{% extends "detector/base.html" %}
+{% block title %}画像アップロード - 物体検知{% endblock %}
+
+{% block detector_head %}
+<style>
+    /* アップロードページのスタイル */
+    .upload-area {
+        border: 3px dashed #ccc;
+        border-radius: 10px;
+        padding: 60px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+    
+    .upload-area:hover {
+        border-color: var(--bs-primary);
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+    }
+    
+    .upload-area.dragover {
+        border-color: var(--bs-success);
+        background-color: rgba(var(--bs-success-rgb), 0.1);
+    }
+    
+    .upload-icon {
+        font-size: 4rem;
+        color: #ccc;
+        margin-bottom: 20px;
+    }
+    
+    .file-input {
+        display: none;
+    }
+    /* エラーメッセージがDnDイベントを奪わないようにする */
+    #fileError { pointer-events: none; }
+    
+    .preview-container {
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    .preview-image {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* ダークモード対応 */
+    body.theme-dark .upload-area {
+        border-color: var(--theme-border);
+        background-color: var(--theme-bg-secondary);
+    }
+    
+    body.theme-dark .upload-area:hover {
+        border-color: #79c0ff;
+        background-color: rgba(121, 192, 255, 0.1);
+    }
+    
+    body.theme-dark .upload-icon {
+        color: var(--theme-text-secondary);
+    }
+    
+    body.theme-dark .card {
+        background-color: var(--theme-bg-secondary) !important;
+        border-color: var(--theme-border) !important;
+    }
+</style>
+{% endblock %}
+
+{% block detector_content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="bi bi-upload"></i> 画像アップロード</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="uploadForm" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="upload-area" id="uploadArea" tabindex="0" aria-describedby="fileError">
+                            <i class="bi bi-cloud-upload upload-icon"></i>
+                            <h5>画像をドラッグ&ドロップまたはクリックして選択</h5>
+                            <p class="text-muted">対応形式: JPG, JPEG, JFIF, PNG, GIF, BMP, WebP</p>
+                            <input type="file" name="file" id="fileInput" class="file-input" accept="image/*">
+                            <button type="button" class="btn btn-primary" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+                                <i class="bi bi-folder2-open"></i> ファイルを選択
+                            </button>
+                            <div id="fileError" class="text-danger mt-2" style="display:none;">ファイルを選択してください。</div>
+                        </div>
+                        
+                        <div id="previewContainer" class="preview-container" style="display: none;">
+                            <h6>プレビュー:</h6>
+                            <img id="previewImage" class="preview-image" alt="アップロード予定の画像">
+                            <div class="mt-3">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-eye"></i> 物体検知を実行
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="resetUpload()">
+                                    <i class="bi bi-x-lg"></i> リセット
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6><i class="bi bi-info-circle"></i> 使用方法</h6>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>上記のエリアに画像ファイルをドラッグ&ドロップするか、「ファイルを選択」ボタンをクリック</li>
+                        <li>画像のプレビューが表示されます</li>
+                        <li>「物体検知を実行」ボタンをクリックして検知を開始</li>
+                        <li>AI が画像内の物体を自動的に検知・識別します</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImage = document.getElementById('previewImage');
+    const form = document.getElementById('uploadForm');
+    const fileError = document.getElementById('fileError');
+    let droppedFiles = null; // DnDで取得したファイルを保持
+
+    // 要素が見つからない場合は何もしない（他ページ読込時の安全策）
+    if (!uploadArea || !fileInput || !previewContainer || !previewImage || !form) {
+        console.warn('Upload elements not found, skipping DnD wiring');
+        return;
+    }
+    
+    // ドラッグ&ドロップイベント
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        const area = (e.target && e.target.closest && e.target.closest('#uploadArea')) || uploadArea;
+        if (area && area.classList) area.classList.add('dragover');
+    }, { passive: false });
+    
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        const area = (e.target && e.target.closest && e.target.closest('#uploadArea')) || uploadArea;
+        if (area && area.classList) area.classList.remove('dragover');
+    }, { passive: false });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        const area = (e.target && e.target.closest && e.target.closest('#uploadArea')) || uploadArea;
+        if (area && area.classList) area.classList.remove('dragover');
+        
+        if (!e.dataTransfer || !e.dataTransfer.types || !Array.from(e.dataTransfer.types).includes('Files')) {
+            return;
+        }
+        const files = Array.from(e.dataTransfer.files || []);
+        if (files.length > 0) {
+            droppedFiles = files;
+            try {
+                const dt = new DataTransfer();
+                files.forEach(f => dt.items.add(f));
+                fileInput.files = dt.files;
+            } catch (_) {
+                try { fileInput.files = e.dataTransfer.files; } catch (_) {}
+            }
+            handleFileSelect(files[0]);
+        }
+    }, { passive: false });
+    
+    // ファイル選択イベント
+    fileInput.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            droppedFiles = files;
+            handleFileSelect(files[0]);
+        }
+    });
+    
+    // エリアクリックでファイル選択
+    uploadArea.addEventListener('click', function(e) {
+        // ボタン上のクリックはここまで伝播させない（二重起動防止）
+        if (e.target && (e.target.closest('button') || e.target.closest('#fileInput'))) {
+            return;
+        }
+        fileInput.click();
+    });
+    
+    function handleFileSelect(file) {
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'block';
+                if (fileError) fileError.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    // 送信直前にDnDファイルを再バインドしてから判定
+    form.addEventListener('submit', function(e) {
+        if ((!fileInput.files || fileInput.files.length === 0) && droppedFiles && droppedFiles.length > 0) {
+            try {
+                const dt = new DataTransfer();
+                droppedFiles.forEach(f => dt.items.add(f));
+                fileInput.files = dt.files;
+            } catch (_) { /* ignore */ }
+        }
+        if (!fileInput.files || fileInput.files.length === 0) {
+            e.preventDefault();
+            if (fileError) fileError.style.display = 'block';
+            try { uploadArea && uploadArea.focus && uploadArea.focus(); } catch(_) {}
+        }
+    });
+});
+
+function resetUpload() {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('previewContainer').style.display = 'none';
+}
+</script>
+{% endblock %}

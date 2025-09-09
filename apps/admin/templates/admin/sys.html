@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}システム情報{% endblock %}
+
+{% block content %}
+<style>
+    .system-info {
+        background: var(--bs-body-bg);
+        padding: 25px;
+        margin: 20px 0;
+        border-radius: 12px;
+        font-family: 'Courier New', monospace;
+        font-size: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--bs-border-color);
+        color: var(--bs-body-color);
+    }
+
+    .info-section {
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--bs-primary);
+        padding-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .info-title {
+        font-weight: bold;
+        color: var(--bs-body-color) !important;
+        margin-bottom: 8px;
+        font-size: 16px;
+        padding: 5px 10px;
+        background: rgba(var(--bs-primary-rgb), 0.1);
+        border-radius: 6px;
+        border-left: 4px solid var(--bs-primary);
+    }
+
+    .info-content {
+        color: var(--bs-body-color) !important;
+        white-space: pre-wrap;
+        line-height: 1.6;
+        background: var(--bs-body-bg);
+        padding: 15px;
+        border-radius: 6px;
+        border: 1px solid var(--bs-border-color);
+    }
+
+    .warning {
+        color: var(--bs-warning) !important;
+        font-weight: bold;
+    }
+
+    .success {
+        color: var(--bs-success) !important;
+        font-weight: bold;
+    }
+
+    .info {
+        color: var(--bs-info) !important;
+        font-weight: bold;
+    }
+
+    /* ダークモード対応 */
+    [data-bs-theme="dark"] .system-info {
+        background: var(--bs-gray-900);
+        border-color: var(--bs-gray-700);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-bs-theme="dark"] .info-content {
+        background: var(--bs-gray-800);
+        border-color: var(--bs-gray-700);
+        color: var(--bs-gray-100) !important;
+    }
+
+    [data-bs-theme="dark"] .info-title {
+        color: var(--bs-gray-100) !important;
+        background: rgba(var(--bs-primary-rgb), 0.2);
+    }
+</style>
+
+<div class="container mt-5">
+    <h1>システム情報</h1>
+
+    <div class="system-info">
+
+        <div class="info-section">
+            <div class="info-title">環境変数:</div>
+            <div class="info-content">
+                {% for key, value in request.environ.items() %}
+                {{ key }}: {{ value }}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">リクエストヘッダー:</div>
+            <div class="info-content">
+                {% for key, value in request.headers.items() %}
+                {{ key }}: {{ value }}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">セッション情報:</div>
+            <div class="info-content">
+                {% for key, value in session.items() %}
+                {{ key }}: {{ value }}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">Flask設定:</div>
+            <div class="info-content">
+                {% for key, value in config.items() %}
+                {{ key }}: {{ value }}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">リクエスト情報:</div>
+            <div class="info-content">
+                Method: {{ request.method }}
+                URL: {{ request.url }}
+                Base URL: {{ request.base_url }}
+                Path: {{ request.path }}
+                Remote Addr: {{ request.remote_addr }}
+                User Agent: {{ request.user_agent }}
+                Accept: {{ request.accept_mimetypes }}
+                Content Type: {{ request.content_type }}
+                Content Length: {{ request.content_length }}
+                Referrer: {{ request.referrer }}
+                Origin: {{ request.origin }}
+                Host: {{ request.host }}
+                Scheme: {{ request.scheme }}
+                Args: {{ request.args }}
+                Form: {{ request.form }}
+                Files: {{ request.files }}
+                Cookies: {{ request.cookies }}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">アプリケーション情報:</div>
+            <div class="info-content">
+                App Name: {{ app.name }}
+                App Instance Path: {{ app.instance_path }}
+                App Root Path: {{ app.root_path }}
+                Debug Mode: {{ app.debug }}
+                Testing: {{ app.testing }}
+                Config Root Path: {{ app.config.root_path }}
+                Static Folder: {{ app.static_folder }}
+                Template Folder: {{ app.template_folder }}
+                Import Name: {{ app.import_name }}
+                Blueprints: {{ app.blueprints }}
+                Extensions: {{ app.extensions }}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">Python情報:</div>
+            <div class="info-content">
+                Python Version: {{ python_version }}
+                Platform: {{ platform }}
+                Architecture: {{ architecture }}
+                Implementation: {{ implementation }}
+                Byte Order: {{ byte_order }}
+                Executable: {{ executable }}
+                Prefix: {{ prefix }}
+                Base Prefix: {{ base_prefix }}
+                Max Size: {{ max_size }}
+                Max Unicode: {{ max_unicode }}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">時刻情報:</div>
+            <div class="info-content">
+                Current Time: {{ current_time }}
+                Timezone: {{ timezone }}
+                UTC Time: {{ utc_time }}
+                Timestamp: {{ timestamp }}
+                ISO Format: {{ iso_time }}
+                Date: {{ date_only }}
+                Time Only: {{ time_only }}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">メモリ使用量:</div>
+            <div class="info-content">
+                {% if memory_info %}
+                Total Memory: {{ memory_info.total }} bytes ({{ memory_info.total_mb }} MB)
+                Available Memory: {{ memory_info.available }} bytes ({{ memory_info.available_mb }} MB)
+                Used Memory: {{ memory_info.used }} bytes ({{ memory_info.used_mb }} MB)
+                Memory Usage: {{ memory_info.percent }}%
+                {% else %}
+                Memory information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">ディスク使用量:</div>
+            <div class="info-content">
+                {% if disk_info %}
+                {% for partition, info in disk_info.items() %}
+                Partition {{ partition }}:
+                Total: {{ info.total }} bytes ({{ info.total_gb }} GB)
+                Used: {{ info.used }} bytes ({{ info.used_gb }} GB)
+                Free: {{ info.free }} bytes ({{ info.free_gb }} GB)
+                Usage: {{ info.percent }}%
+                {% endfor %}
+                {% else %}
+                Disk information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">CPU情報:</div>
+            <div class="info-content">
+                {% if cpu_info %}
+                CPU Count: {{ cpu_info.count }}
+                CPU Usage: {{ cpu_info.usage }}%
+                CPU Frequency: {{ cpu_info.freq }} MHz
+                CPU Load Average: {{ cpu_info.load_avg }}
+                {% else %}
+                CPU information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">ネットワーク情報:</div>
+            <div class="info-content">
+                {% if network_info %}
+                Hostname: {{ network_info.hostname }}
+                IP Address: {{ network_info.ip }}
+                MAC Address: {{ network_info.mac }}
+                Network Interfaces: {{ network_info.interfaces }}
+                {% else %}
+                Network information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">データベース情報:</div>
+            <div class="info-content">
+                {% if db_info %}
+                Database Type: {{ db_info.type }}
+                Database Name: {{ db_info.name }}
+                Database Host: {{ db_info.host }}
+                Database Port: {{ db_info.port }}
+                Database User: {{ db_info.user }}
+                Connection Status: {{ db_info.status }}
+                {% else %}
+                Database information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">インストール済みパッケージ:</div>
+            <div class="info-content">
+                {% if installed_packages %}
+                {% for package in installed_packages %}
+                {{ package.name }}: {{ package.version }}
+                {% endfor %}
+                {% else %}
+                Package information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">プロセス情報:</div>
+            <div class="info-content">
+                {% if process_info %}
+                Process ID: {{ process_info.pid }}
+                Process Name: {{ process_info.name }}
+                Process Status: {{ process_info.status }}
+                Process Memory: {{ process_info.memory }} bytes
+                Process CPU: {{ process_info.cpu }}%
+                Process Create Time: {{ process_info.create_time }}
+                Process Working Set: {{ process_info.working_set }} bytes
+                {% else %}
+                Process information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">システム起動時間:</div>
+            <div class="info-content">
+                {% if boot_time %}
+                Boot Time: {{ boot_time }}
+                Uptime: {{ uptime }}
+                {% else %}
+                Boot time information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">ファイルシステム情報:</div>
+            <div class="info-content">
+                {% if filesystem_info %}
+                Current Working Directory: {{ filesystem_info.cwd }}
+                Temp Directory: {{ filesystem_info.temp_dir }}
+                Home Directory: {{ filesystem_info.home_dir }}
+                Root Directory: {{ filesystem_info.root_dir }}
+                {% else %}
+                Filesystem information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">セキュリティ情報:</div>
+            <div class="info-content">
+                {% if security_info %}
+                SSL Version: {{ security_info.ssl_version }}
+                SSL Ciphers: {{ security_info.ssl_ciphers }}
+                TLS Version: {{ security_info.tls_version }}
+                {% else %}
+                Security information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">ログ情報:</div>
+            <div class="info-content">
+                {% if log_info %}
+                Log Level: {{ log_info.level }}
+                Log Handlers: {{ log_info.handlers }}
+                Log Format: {{ log_info.format }}
+                {% else %}
+                Log information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">キャッシュ情報:</div>
+            <div class="info-content">
+                {% if cache_info %}
+                Cache Type: {{ cache_info.type }}
+                Cache Size: {{ cache_info.size }}
+                Cache Hits: {{ cache_info.hits }}
+                Cache Misses: {{ cache_info.misses }}
+                Cache Hit Rate: {{ cache_info.hit_rate }}%
+                {% else %}
+                Cache information not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">セッション統計:</div>
+            <div class="info-content">
+                {% if session_stats %}
+                Active Sessions: {{ session_stats.active }}
+                Total Sessions: {{ session_stats.total }}
+                Session Duration: {{ session_stats.duration }}
+                Session Size: {{ session_stats.size }} bytes
+                {% else %}
+                Session statistics not available
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">エラー情報:</div>
+            <div class="info-content">
+                {% if error_info %}
+                {% for error in error_info %}
+                Error Type: {{ error.type }}
+                Error Message: {{ error.message }}
+                Error Time: {{ error.time }}
+                {% endfor %}
+                {% else %}
+                No errors recorded
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">パフォーマンス情報:</div>
+            <div class="info-content">
+                {% if performance_info %}
+                Response Time: {{ performance_info.response_time }} ms
+                Request Count: {{ performance_info.request_count }}
+                Average Response Time: {{ performance_info.avg_response_time }} ms
+                Peak Response Time: {{ performance_info.peak_response_time }} ms
+                {% else %}
+                Performance information not available
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

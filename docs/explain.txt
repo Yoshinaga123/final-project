@@ -1,0 +1,143 @@
+Flask以外にも多くのPython製のWebフレームワークがあります。そのため、新規開発プロジェクトの際に、frameworkの選定は重要です。
+オブジェクト指向で、Django、FastAPI、Flask、Bottleなどがあります。
+それぞれのフレームワークには、特徴があります。
+Djangoは、オブジェクト指向で、フルスタックなフレームワークです。
+FastAPIは、APIファーストなフレームワークです。
+Flaskは、軽量なフレームワークです。
+Bottleは、軽量なフレームワークです。
+
+そのため、今回はFlaskを使用しています。
+
+WebAPIを開発するときに、FastAPIはFlaskよりも高速です。
+FastAPIは非同期処理で実装しやすいように設計されています。
+・OpenAPIに基づいて、自動的にJSON Schemaモデルを生成する。
+・PythonのASGIframeworkであるUvicornによるハイパフォーマンス化
+・Pydanticはデータ検証を行うためのライブラリです。
+・APIを定義すると、Swagger UI、Redocによるドキュメントの自動生成が可能。
+・GraphQLやWebSocketをサポートします。
+
+WebAPIを開発するときに、本来なら自分で設計してゼロから準備しなければならない機能が、事前にFasAPIのframeworkの中に組み込まれています。
+
+また、FastAPIはStarletteというPythonのASGI frameworkをベースにしています。
+
+Flaskが依存しているパッケージ一覧
+|パッケージ名｜説明　
+|click      |Flaskのコマンドライン用framework。Flaskのカスタムコマンドを使う際に使用される。
+|itsdangerous|Flaskのセキュリティ機能を提供します。
+|jinja2     |Flaskのテンプレートエンジンを提供します。
+|markupsafe |インジェクション攻撃を回避するために、templateをrenderingするときに新規入力された値をエスケープする。
+|werkzeug   |WSGI toolkit。Flaskのコア実装担当。
+
+.envがない場合はfkask runコマンドを実行したディレクトリがアプリケーショルートになります。
+今回の場合は、C:\Users\Kiyokazu\Desktop\Final-Project\apps\final-projectになります。
+
+.envがある場合は、.envファイルがあるディレクトリがアプリケーションルートになります。
+.envファイルの値からFlaskのアプリを取得し実行します。
+.envがない場合は、flask runコマンドを実行すると、環境変数のFLASK_APPに設定されている値を取得し、実行ディレクトリに値と同じ名前のモジュールがあるかチェックします。
+この場合のモジュールは、app.pyになります。
+
+アプリケーションルートを変更しましょう。
+今後、複数のアプリを開発する際にその都度VScodeのwindowsのタブを切り替えるのは非効率です。
+
+エンドポイントのURLを利用するためには、url_for関数を使用します。
+通常、HTMLファイルやView関数の中で、/nameのように記述しますが、
+これをurl_for('name')のように記述できます。
+こうすることで、エンドポイントに対応するルールが変わっても、HTMLファイルやViewに記述しているURLを修正する必要がありません。
+なぜかというと、url_for関数は、エンドポイントに対応するルールを取得し、そのルールに従ってURLを生成するからです。
+
+アプリケーションコンテキストとは、サイトのルートディレクトリを示します。
+リクエストコンテキストとは、リクエストのURLを示します。
+
+app = flask(__name__)で取得したappにアクセスすればアプリのインスタンスにアクセスできましたが、アプリがスケールすると、お互いが参照しあいループが生じる循環参照が発生しやすくなり、Flask側でエラーが発生します。
+アプリケーションコンテキストであるcurrent_appは、Flaskがリクエストの処理を開始した時にスタックにプッシュされてcurrent_appという属性にアクセス可能になります。
+PRGパターンとは、Post-Redirect-Getの略で、POSTリクエストを送信後、リダイレクトでGETリクエストを送信することで、リダイレクト先でリクエストパラメータが失われるのを防ぎます。
+
+セッションを使うには、セッション情報をセキュリティで守るために秘密鍵を設定します。
+秘密鍵は、ランダムな値にする必要があります。
+apps/minimalapp/app.pyに、コンフィグのSECRET_KEYの値を設定します。
+
+一切の大事の中に国の滅びるが第一の大事にて候なり。
+国王にあって政悪しくしてこの国を他国に破らるるが第一の悪しき事と説かれて候なり。
+
+
+
+flaskbook/                                    # プロジェクトルート
+├── .env                                      # 環境変数設定
+├── app.log                                   # アプリケーションログ
+├── requirements.txt                          # 依存関係
+├── venv/                                     # 仮想環境（ルート）
+│   ├── Include/
+│   ├── Lib/
+│   └── Scripts/
+├── apps/                                     # アプリケーションディレクトリ
+│   ├── app.py                               # メインのFlaskアプリケーション
+│   ├── config.py                            # 設定ファイル
+│   ├── final-project/                       # 現在のプロジェクト（移行対象）
+│   │   ├── app.py                          # 現在のメインアプリ
+│   │   ├── instance/
+│   │   │   └── app.db                      # 現在のデータベース
+│   │   ├── readme.txt/
+│   │   │   └── explain.txt                 # 説明ファイル
+│   │   ├── requirements.txt                # 依存関係
+│   │   ├── schema.sql                      # データベーススキーマ
+│   │   ├── static/                         # 静的ファイル
+│   │   │   ├── css/
+│   │   │   │   └── style.css
+│   │   │   ├── img/
+│   │   │   └── js/
+│   │   │       └── main.js
+│   │   ├── templates/                      # テンプレート
+│   │   │   ├── account.html
+│   │   │   ├── admin_users.html
+│   │   │   ├── base.html
+│   │   │   ├── contact_complete.html
+│   │   │   ├── contact_mail.html
+│   │   │   ├── contact_mail.txt
+│   │   │   ├── contact.html
+│   │   │   ├── error_pages/
+│   │   │   │   ├── 404.html
+│   │   │   │   └── 500.html
+│   │   │   ├── index.html
+│   │   │   ├── login.html
+│   │   │   ├── product.html
+│   │   │   ├── register.html
+│   │   │   ├── sys.html
+│   │   │   └── ui_switch.html
+│   │   └── venv/                           # プロジェクト固有の仮想環境
+│   └── crud/                               # CRUD機能のモジュール（新規作成）
+│       ├── __init__.py
+│       ├── forms.py                        # フォーム定義
+│       ├── models.py                       # データベースモデル
+│       ├── views.py                        # ビュー関数
+│       ├── static/
+│       │   └── style.css
+│       └── templates/
+│           └── crud/
+│               ├── base.html
+│               ├── create.html
+│               ├── edit.html
+│               └── index.html
+├── local.sqlite                             # 統合SQLiteデータベース
+└── migrations/                              # データベースマイグレーション
+    ├── versions/
+    └── alembic.ini├── apps/
+│   ├── app.py          # メインのFlaskアプリケーション
+│   ├── config.py       # 設定ファイル
+│   └── crud/           # CRUD機能のモジュール
+│       ├── __init__.py
+│       ├── forms.py    # フォーム定義
+│       ├── models.py   # データベースモデル
+│       ├── views.py    # ビュー関数
+│       ├── static/
+│       │   └── style.css
+│       └── templates/
+│           └── crud/
+│               ├── base.html
+│               ├── create.html
+│               ├── edit.html
+│               └── index.html
+├── local.sqlite        # SQLiteデータベース
+└── migrations/         # データベースマイグレーション
+
+
+

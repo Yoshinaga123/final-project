@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{# Shim base for detector templates from the reference repo.
+   It maps the reference's `block content` into our app's `block body`,
+   and exposes a nested head block (`detector_head`) for page-specific styles. #}
+
+{% block head %}
+  {% block detector_head %}{% endblock %}
+{% endblock %}
+
+{# Render detector pages through a single block to avoid duplicate containers. #}
+{% block body %}
+  {% block detector_content %}{% endblock %}
+{% endblock %}
+
+{# Override top-level content block to empty to prevent double rendering from base.html #}
+{% block content %}{% endblock %}
+
+{% block extra_js %}
+  {% block detector_extra_js %}{% endblock %}
+{% endblock %}

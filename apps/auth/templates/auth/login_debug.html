@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}ログイン - App{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">ログイン</h3>
+                </div>
+                <div class="card-body">
+                    <!-- デバッグ情報表示 -->
+                    {% if form.errors %}
+                    <div class="alert alert-warning">
+                        <strong>🐛 デバッグ: フォームエラーが存在します</strong>
+                        <ul>
+                        {% for field_name, field_errors in form.errors.items() %}
+                            <li><strong>{{ field_name }}:</strong> {{ field_errors }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            {{ form.username(class="form-control") }}
+                            {% if form.username.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.username.errors %}
+                                        <small><i class="fas fa-exclamation-triangle"></i> {{ error }}</small><br>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <small class="text-muted">📝 エラーなし</small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control") }}
+                            {% if form.password.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.password.errors %}
+                                        <small><i class="fas fa-exclamation-triangle"></i> {{ error }}</small><br>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <small class="text-muted">📝 エラーなし</small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                        
+                        <!-- デバッグ情報 -->
+                        <div class="mt-3 p-2 bg-light border">
+                            <small class="text-muted">
+                                <strong>🔍 デバッグ情報:</strong><br>
+                                フォーム送信: {{ request.method }}<br>
+                                フォーム送信済み: {{ form.is_submitted() }}<br>
+                                エラー数: {{ form.errors|length }}
+                            </small>
+                        </div>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('auth.register') }}">新規登録はこちら</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

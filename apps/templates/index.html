@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}ホーム{% endblock %}
+
+{% block content %}
+<style>
+    .hero {
+        background: linear-gradient(135deg, rgba(13,110,253,.08), rgba(32,201,151,.08));
+        border: 1px solid rgba(0,0,0,.05);
+        border-radius: 16px;
+    }
+    .feature-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+    .icon-circle { width: 48px; height: 48px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+    .icon-lg { font-size: 1.5rem; }
+    @media (prefers-color-scheme: dark) {
+        .hero { border-color: rgba(255,255,255,.08); }
+    }
+    .mt-6 { margin-top: 4rem; }
+    </style>
+
+<div class="container mt-6">
+    <!-- Hero -->
+    <section class="hero p-4 p-md-5 mb-5">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <h1 class="display-5 fw-bold mb-3">Flaskbook へようこそ</h1>
+                <p class="lead text-muted mb-4">物体検知・将棋などの機能をシンプルなUIで使えるサンプルアプリです。まずは画像をアップロードして検知を試しましょう。</p>
+                <!-- Hero CTAs removed per request; detector/shogi links remain in feature cards below -->
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="mb-4">
+        <h2 class="h4 mb-3">機能</h2>
+        <div class="row g-3 g-md-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="icon-circle bg-primary bg-opacity-10 text-primary mb-3"><i class="bi bi-camera icon-lg"></i></div>
+                        <h5 class="card-title">物体検知</h5>
+                        <p class="card-text text-muted">画像をアップロードして、AI が画像内の物体を検出・分類します。結果は図形オーバーレイで表示されます。</p>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('detector.upload') }}" class="btn btn-sm btn-primary">アップロード</a>
+                            <a href="{{ url_for('detector.index') }}" class="btn btn-sm btn-outline-secondary">検知トップ</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="icon-circle bg-success bg-opacity-10 text-success mb-3"><i class="bi bi-collection icon-lg"></i></div>
+                        <h5 class="card-title">ギャラリー</h5>
+                        <p class="card-text text-muted">これまでにアップロードした画像と検出メタ情報を閲覧できます。</p>
+                        <a href="{{ url_for('detector.gallery') }}" class="btn btn-sm btn-success">開く</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="icon-circle bg-warning bg-opacity-10 text-warning mb-3"><i class="bi bi-controller icon-lg"></i></div>
+                        <h5 class="card-title">将棋</h5>
+                        <p class="card-text text-muted">将棋盤表示や棋譜の表示・入力などの機能を試せます。</p>
+                        <a href="{{ url_for('shogi.index') }}" class="btn btn-sm btn-warning">将棋へ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tips -->
+    <section class="mb-5">
+        
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>問い合わせ完了</title>
+</head>
+<body>
+    <p>{{username}}さん</p>
+    <p>お問い合わせありがとうございました。</p>
+    <p>名前: {{username}}</p>
+    <p>メールアドレス: {{email}}</p>
+    <p>お問い合わせ内容: {{message}}</p>
+    <p>送信日時:{{submission_date.strftime('%y年%m月%d日 %H時%M分%S秒')}}</p>
+    <p>こちらは自動返信メールです。</p>
+</body>
+</html>

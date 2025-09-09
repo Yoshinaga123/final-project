@@ -1,0 +1,937 @@
+2025-09-06 19:12:37,001 ERROR: Unhandled Exception: 400 Bad Request: The CSRF token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:185]
+2025-09-06 19:12:37,040 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 261, in protect
+    validate_csrf(self._get_csrf_token())
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 100, in validate_csrf
+    raise ValidationError("The CSRF token is missing.")
+wtforms.validators.ValidationError: The CSRF token is missing.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 229, in csrf_protect
+    self.protect()
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 264, in protect
+    self._error_response(e.args[0])
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 307, in _error_response
+    raise CSRFError(reason)
+flask_wtf.csrf.CSRFError: 400 Bad Request: The CSRF token is missing.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:186]
+2025-09-06 19:12:50,264 ERROR: Unhandled Exception: 400 Bad Request: The CSRF token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:185]
+2025-09-06 19:12:50,286 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 261, in protect
+    validate_csrf(self._get_csrf_token())
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 100, in validate_csrf
+    raise ValidationError("The CSRF token is missing.")
+wtforms.validators.ValidationError: The CSRF token is missing.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 229, in csrf_protect
+    self.protect()
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 264, in protect
+    self._error_response(e.args[0])
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 307, in _error_response
+    raise CSRFError(reason)
+flask_wtf.csrf.CSRFError: 400 Bad Request: The CSRF token is missing.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:186]
+2025-09-06 19:13:31,428 ERROR: Unhandled Exception: 400 Bad Request: The CSRF token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:185]
+2025-09-06 19:13:31,508 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 261, in protect
+    validate_csrf(self._get_csrf_token())
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 100, in validate_csrf
+    raise ValidationError("The CSRF token is missing.")
+wtforms.validators.ValidationError: The CSRF token is missing.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 229, in csrf_protect
+    self.protect()
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 264, in protect
+    self._error_response(e.args[0])
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 307, in _error_response
+    raise CSRFError(reason)
+flask_wtf.csrf.CSRFError: 400 Bad Request: The CSRF token is missing.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:186]
+2025-09-06 19:14:04,822 ERROR: Unhandled Exception: 400 Bad Request: The CSRF token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:185]
+2025-09-06 19:14:04,840 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 261, in protect
+    validate_csrf(self._get_csrf_token())
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 100, in validate_csrf
+    raise ValidationError("The CSRF token is missing.")
+wtforms.validators.ValidationError: The CSRF token is missing.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 229, in csrf_protect
+    self.protect()
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 264, in protect
+    self._error_response(e.args[0])
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 307, in _error_response
+    raise CSRFError(reason)
+flask_wtf.csrf.CSRFError: 400 Bad Request: The CSRF token is missing.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:186]
+2025-09-06 19:14:57,360 ERROR: Unhandled Exception: 400 Bad Request: The CSRF token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:185]
+2025-09-06 19:14:57,374 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 261, in protect
+    validate_csrf(self._get_csrf_token())
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 100, in validate_csrf
+    raise ValidationError("The CSRF token is missing.")
+wtforms.validators.ValidationError: The CSRF token is missing.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 229, in csrf_protect
+    self.protect()
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 264, in protect
+    self._error_response(e.args[0])
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 307, in _error_response
+    raise CSRFError(reason)
+flask_wtf.csrf.CSRFError: 400 Bad Request: The CSRF token is missing.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:186]
+2025-09-06 19:16:17,803 ERROR: Unhandled Exception: 400 Bad Request: The CSRF token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:185]
+2025-09-06 19:16:17,818 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 261, in protect
+    validate_csrf(self._get_csrf_token())
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 100, in validate_csrf
+    raise ValidationError("The CSRF token is missing.")
+wtforms.validators.ValidationError: The CSRF token is missing.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 229, in csrf_protect
+    self.protect()
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 264, in protect
+    self._error_response(e.args[0])
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 307, in _error_response
+    raise CSRFError(reason)
+flask_wtf.csrf.CSRFError: 400 Bad Request: The CSRF token is missing.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:186]
+2025-09-06 19:16:32,216 ERROR: Unhandled Exception: 400 Bad Request: The CSRF token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:185]
+2025-09-07 18:23:37,224 ERROR: Unhandled Exception: 400 Bad Request: The CSRF token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:217]
+2025-09-07 18:23:37,233 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 261, in protect
+    validate_csrf(self._get_csrf_token())
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 100, in validate_csrf
+    raise ValidationError("The CSRF token is missing.")
+wtforms.validators.ValidationError: The CSRF token is missing.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 229, in csrf_protect
+    self.protect()
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 264, in protect
+    self._error_response(e.args[0])
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 307, in _error_response
+    raise CSRFError(reason)
+flask_wtf.csrf.CSRFError: 400 Bad Request: The CSRF token is missing.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:218]
+2025-09-07 23:28:27,772 ERROR: Failed to read kifu file aaa-20250907-183825.kif: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:208]
+2025-09-07 23:28:29,759 ERROR: Failed to read kifu file aaa-20250907-183825.kif: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:208]
+2025-09-07 23:28:31,137 ERROR: Failed to read kifu file aaa-20250907-183825.kif: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:208]
+2025-09-07 23:28:42,704 ERROR: Failed to read kifu file aaa-20250907-183825.kif: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:208]
+2025-09-07 23:28:44,071 ERROR: Failed to read kifu file aaa-20250907-183825.kif: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:208]
+2025-09-07 23:28:45,149 ERROR: Failed to read kifu file aaa-20250907-183825.kif: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:208]
+2025-09-07 23:29:00,568 ERROR: Failed to read kifu file aaa-20250907-183825.kif: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:208]
+2025-09-07 23:29:01,588 ERROR: Failed to read kifu file aaa-20250907-183825.kif: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:208]
+2025-09-07 23:33:41,632 ERROR: Failed to read kifu file aaa-20250907-183825.kif: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:216]
+2025-09-07 23:33:44,152 ERROR: Failed to read kifu file aaa-20250907-183825.kif: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:216]
+2025-09-08 00:35:53,271 ERROR: File not found: C:\Users\yoshinaga_kosuke\flaskbook\apps/static/kifu\aaa-20250907-183825.kifu [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:207]
+2025-09-08 00:45:00,610 ERROR: File not found: C:\Users\yoshinaga_kosuke\flaskbook\apps/static/kifu\great-tsume.kif [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:207]
+2025-09-08 00:45:31,850 ERROR: File not found: C:\Users\yoshinaga_kosuke\flaskbook\apps/static/kifu\王位戦_永瀬拓矢-藤井聡太_2025-08-26.kifu [in C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py:207]
+2025-09-08 12:06:28,120 ERROR: Unhandled Exception: Encountered unknown tag 'endblock'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:217]
+2025-09-08 12:06:28,170 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py", line 232, in kifu_view
+    return render_template('shogi/kifu_view.html',
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\templates\shogi\kifu_view.html", line 337, in template
+    {% endblock %}
+jinja2.exceptions.TemplateSyntaxError: Encountered unknown tag 'endblock'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:218]
+2025-09-08 12:06:32,714 ERROR: Unhandled Exception: Encountered unknown tag 'endblock'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:217]
+2025-09-08 12:06:32,717 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py", line 232, in kifu_view
+    return render_template('shogi/kifu_view.html',
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\templates\shogi\kifu_view.html", line 337, in template
+    {% endblock %}
+jinja2.exceptions.TemplateSyntaxError: Encountered unknown tag 'endblock'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:218]
+2025-09-08 12:06:35,286 ERROR: Unhandled Exception: Encountered unknown tag 'endblock'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:217]
+2025-09-08 12:06:35,290 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\routes.py", line 232, in kifu_view
+    return render_template('shogi/kifu_view.html',
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\shogi\templates\shogi\kifu_view.html", line 337, in template
+    {% endblock %}
+jinja2.exceptions.TemplateSyntaxError: Encountered unknown tag 'endblock'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:218]
+2025-09-08 15:30:39,155 ERROR: Unhandled Exception: detector/detect.html [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 15:30:39,176 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\routes.py", line 92, in detect
+    return render_template('detector/detect.html',
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: detector/detect.html
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 15:30:51,543 ERROR: Unhandled Exception: 'original_image' is undefined [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 15:30:51,573 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\routes.py", line 137, in results
+    return render_template('detector/results.html', files=uploaded_files)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 150, in render_template
+    return _render(app, template, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 131, in _render
+    rv = template.render(context)
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\templates\detector\results.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\templates\base.html", line 770, in top-level template code
+    <main>{% block body %}{% endblock %}</main> <!-- メインコンテンツ -->
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\templates\detector\results.html", line 146, in block 'body'
+    <img src="{{ url_for('static', filename='uploads/' + original_image) }}"
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+jinja2.exceptions.UndefinedError: 'original_image' is undefined
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 16:22:57,419 ERROR: Unhandled Exception: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 16:22:57,463 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\routes.py", line 37, in index
+    return render_template('detector/index.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\templates\detector\index.html", line 137, in template
+    {% block head %}
+jinja2.exceptions.TemplateSyntaxError: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 16:23:01,470 ERROR: Unhandled Exception: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 16:23:01,477 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\routes.py", line 37, in index
+    return render_template('detector/index.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\templates\detector\index.html", line 137, in template
+    {% block head %}
+jinja2.exceptions.TemplateSyntaxError: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 16:23:12,194 ERROR: Unhandled Exception: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 16:23:12,194 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\routes.py", line 37, in index
+    return render_template('detector/index.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\templates\detector\index.html", line 137, in template
+    {% block head %}
+jinja2.exceptions.TemplateSyntaxError: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 16:24:49,347 ERROR: Unhandled Exception: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 16:24:49,369 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\routes.py", line 37, in index
+    return render_template('detector/index.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\templates\detector\index.html", line 137, in template
+    {% block head %}
+jinja2.exceptions.TemplateSyntaxError: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 16:25:36,875 ERROR: Unhandled Exception: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 16:25:36,884 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\routes.py", line 37, in index
+    return render_template('detector/index.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\templates\detector\index.html", line 137, in template
+    {% block head %}
+jinja2.exceptions.TemplateSyntaxError: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 16:25:40,134 ERROR: Unhandled Exception: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 16:25:40,140 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\routes.py", line 37, in index
+    return render_template('detector/index.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\detector\templates\detector\index.html", line 137, in template
+    {% block head %}
+jinja2.exceptions.TemplateSyntaxError: Unexpected end of template. Jinja was looking for the following tags: 'endblock'. The innermost block that needs to be closed is 'block'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 17:45:32,855 ERROR: Unhandled Exception: 400 Bad Request: The CSRF session token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 17:45:32,875 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 261, in protect
+    validate_csrf(self._get_csrf_token())
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 103, in validate_csrf
+    raise ValidationError("The CSRF session token is missing.")
+wtforms.validators.ValidationError: The CSRF session token is missing.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 229, in csrf_protect
+    self.protect()
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 264, in protect
+    self._error_response(e.args[0])
+  File "C:\Users\yoshinaga_kosuke\flaskbook\venv\Lib\site-packages\flask_wtf\csrf.py", line 307, in _error_response
+    raise CSRFError(reason)
+flask_wtf.csrf.CSRFError: 400 Bad Request: The CSRF session token is missing.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 18:13:07,829 ERROR: Unhandled Exception: 400 Bad Request: The CSRF session token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 18:13:07,890 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_wtf\csrf.py", line 261, in protect
+    validate_csrf(self._get_csrf_token())
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_wtf\csrf.py", line 103, in validate_csrf
+    raise ValidationError("The CSRF session token is missing.")
+wtforms.validators.ValidationError: The CSRF session token is missing.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_wtf\csrf.py", line 229, in csrf_protect
+    self.protect()
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_wtf\csrf.py", line 264, in protect
+    self._error_response(e.args[0])
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_wtf\csrf.py", line 307, in _error_response
+    raise CSRFError(reason)
+flask_wtf.csrf.CSRFError: 400 Bad Request: The CSRF session token is missing.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 18:13:17,431 ERROR: Unhandled Exception: 400 Bad Request: The CSRF session token is missing. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 18:13:17,447 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_wtf\csrf.py", line 261, in protect
+    validate_csrf(self._get_csrf_token())
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_wtf\csrf.py", line 103, in validate_csrf
+    raise ValidationError("The CSRF session token is missing.")
+wtforms.validators.ValidationError: The CSRF session token is missing.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 915, in full_dispatch_request
+    rv = self.preprocess_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 1291, in preprocess_request
+    rv = self.ensure_sync(before_func)()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_wtf\csrf.py", line 229, in csrf_protect
+    self.protect()
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_wtf\csrf.py", line 264, in protect
+    self._error_response(e.args[0])
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_wtf\csrf.py", line 307, in _error_response
+    raise CSRFError(reason)
+flask_wtf.csrf.CSRFError: 400 Bad Request: The CSRF session token is missing.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 18:16:17,136 ERROR: Unhandled Exception: Encountered unknown tag 'endblock'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 18:16:17,180 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\routes.py", line 43, in login
+    return render_template('auth/login.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\templates\auth\login.html", line 435, in template
+    {% endblock %}
+jinja2.exceptions.TemplateSyntaxError: Encountered unknown tag 'endblock'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 18:16:20,341 ERROR: Unhandled Exception: Encountered unknown tag 'endblock'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 18:16:20,344 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\routes.py", line 43, in login
+    return render_template('auth/login.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\templates\auth\login.html", line 435, in template
+    {% endblock %}
+jinja2.exceptions.TemplateSyntaxError: Encountered unknown tag 'endblock'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 18:16:31,657 ERROR: Unhandled Exception: Encountered unknown tag 'endblock'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 18:16:31,663 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\routes.py", line 43, in login
+    return render_template('auth/login.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\templates\auth\login.html", line 435, in template
+    {% endblock %}
+jinja2.exceptions.TemplateSyntaxError: Encountered unknown tag 'endblock'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 18:16:32,699 ERROR: Unhandled Exception: Encountered unknown tag 'endblock'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 18:16:32,708 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\routes.py", line 43, in login
+    return render_template('auth/login.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\templates\auth\login.html", line 435, in template
+    {% endblock %}
+jinja2.exceptions.TemplateSyntaxError: Encountered unknown tag 'endblock'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 18:16:53,172 ERROR: Unhandled Exception: Encountered unknown tag 'endblock'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 18:16:53,186 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\routes.py", line 43, in login
+    return render_template('auth/login.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\templates\auth\login.html", line 435, in template
+    {% endblock %}
+jinja2.exceptions.TemplateSyntaxError: Encountered unknown tag 'endblock'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 18:17:03,450 ERROR: Unhandled Exception: Encountered unknown tag 'endblock'. [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:220]
+2025-09-08 18:17:03,472 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\routes.py", line 43, in login
+    return render_template('auth/login.html', form=form)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\loaders.py", line 138, in load
+    code = environment.compile(source, name, filename)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 771, in compile
+    self.handle_exception(source=source_hint)
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\auth\templates\auth\login.html", line 435, in template
+    {% endblock %}
+jinja2.exceptions.TemplateSyntaxError: Encountered unknown tag 'endblock'.
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:221]
+2025-09-08 21:15:59,763 ERROR: Unhandled Exception: contact_complete.html [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:234]
+2025-09-08 21:15:59,782 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\contact\routes.py", line 86, in contact_complete
+    return render_template('contact_complete.html', **context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: contact_complete.html
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:235]
+2025-09-08 21:20:15,483 ERROR: Unhandled Exception: contact_complete.html [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:234]
+2025-09-08 21:20:15,483 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\contact\routes.py", line 86, in contact_complete
+    return render_template('contact_complete.html', **context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: contact_complete.html
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:235]
+2025-09-08 21:20:21,432 ERROR: Unhandled Exception: contact_complete.html [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:234]
+2025-09-08 21:20:21,433 ERROR: Traceback: Traceback (most recent call last):
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask_debugtoolbar\__init__.py", line 222, in dispatch_request
+    return view_func(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\flaskbook\apps\contact\routes.py", line 86, in contact_complete
+    return render_template('contact_complete.html', **context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 149, in render_template
+    template = app.jinja_env.get_or_select_template(template_name_or_list)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 1016, in get_template
+    return self._load_template(name, globals)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\environment.py", line 975, in _load_template
+    template = self.loader.load(self, name, self.make_globals(globals))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yoshinaga_kosuke\AppData\Local\Programs\Python\Python312\Lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: contact_complete.html
+ [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:235]
