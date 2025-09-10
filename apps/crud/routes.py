@@ -5,6 +5,11 @@ from wtforms import ValidationError
 from . import crud_bp
 from apps.models import db, User
 
+# 互換性: indexリンク解決用のエイリアス (テンプレートで crud.index を参照しているため)
+@crud_bp.route('/')
+def index():  # pragma: no cover - 単純フォワード
+    return redirect(url_for('crud.account'))
+
 @crud_bp.route('/product/<int:product_id>', methods=['GET', 'POST'])
 def product(product_id):
     # 1. 商品情報のリスト

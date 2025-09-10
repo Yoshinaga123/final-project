@@ -11,3 +11,6 @@ from flask import Blueprint
 # template_folder='templates'により、テンプレートディレクトリを指定
 contact_bp = Blueprint('contact', __name__, url_prefix='/contact', template_folder='templates')
 
+# ルート登録 (明示インポート)
+from . import routes  # noqa: F401
+

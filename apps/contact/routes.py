@@ -109,6 +109,11 @@ def send_email(app, template, subject, recipients, **kwargs):
     # メールを送信
     app.mail.send(msg)
 
+# 互換性のためのエイリアス: index -> contact, contact.index で参照できるように
+@contact_bp.route('/index')
+def index():  # pragma: no cover - 単純委譲
+    return contact()
+
 
 # 添付ファイルの読み込み
 try:

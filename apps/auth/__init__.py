@@ -6,4 +6,4 @@ auth_bp = Blueprint('auth', __name__,
                    static_folder='static')
 
 # ルートをインポート（循環インポートを避けるため）
-# インポートは関数内で行う
+from . import routes  # noqa: F401
