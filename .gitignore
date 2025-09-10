@@ -1,11 +1,27 @@
-﻿__pycache__/
+__pycache__/
 *.pyc
 .env
 venv/
 .venv/
 local.sqlite
 logs/
-# Root-level log files (already tracked earlier; now ignore going forward)
-/app.log
-/app.log.*
-/error.log
+
+# Log files (unified)
+*.log
+*.log.*
+app.log
+error.log
+app.log.*
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
