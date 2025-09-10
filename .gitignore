@@ -5,3 +5,7 @@ venv/
 .venv/
 local.sqlite
 logs/
+# Root-level log files (already tracked earlier; now ignore going forward)
+/app.log
+/app.log.*
+/error.log
