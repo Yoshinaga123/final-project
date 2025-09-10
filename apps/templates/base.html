@@ -3,10 +3,10 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <!-- モバイル対応 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{% block title %}App{% endblock %}</title>
     
-    <!-- ちらつき防止: ページ読み込み前にテーマを即座に適用（theme-settingsに統一） -->
+    <!-- ちらつき防止: ページ読み込み前にテーマを即座に適用 -->
     <script>
         (function() {
             try {
@@ -34,14 +34,11 @@
     </script>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <!-- Bootstrapの読み込み -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <!-- Bootstrap Iconsの読み込み -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> <!-- CSSファイルの読み込み -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
     <!-- テーマ切り替え用CSS -->
     <style>
-        /* ちらつき防止: 初期状態で透明度を下げる */
         html {
             opacity: 0.98;
             transition: opacity 0.1s ease-in;
@@ -51,9 +48,7 @@
             opacity: 1;
         }
         
-        /* CSS変数によるテーマ定義 */
         :root {
-            /* ライトテーマ（デフォルト） - 白色を抑えてちらつき軽減 */
             --theme-bg-primary: #fafafa;
             --theme-bg-secondary: #f5f5f5;
             --theme-text-primary: #212529;
@@ -61,7 +56,6 @@
             --theme-border: #dee2e6;
         }
 
-        /* ダークテーマ */
         html.theme-dark,
         body.theme-dark {
             --theme-bg-primary: #121212;
@@ -71,36 +65,12 @@
             --theme-border: #404040;
         }
 
-        /* テーマ適用 */
         body {
             background-color: var(--theme-bg-primary) !important;
             color: var(--theme-text-primary) !important;
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* コンテナ背景 */
-        .container {
-            background-color: transparent;
-        }
-
-        /* テキスト色の強制適用 */
-        body.theme-dark h1, 
-        body.theme-dark h2, 
-        body.theme-dark h3, 
-        body.theme-dark h4, 
-        body.theme-dark h5, 
-        body.theme-dark h6 {
-            color: var(--theme-text-primary) !important;
-        }
-
-        body.theme-dark p, 
-        body.theme-dark span, 
-        body.theme-dark div, 
-        body.theme-dark li {
-            color: var(--theme-text-primary) !important;
-        }
-
-        /* ナビゲーションバーのダークテーマ対応 */
         body.theme-dark .navbar-dark {
             background-color: #000000 !important;
         }
@@ -109,221 +79,31 @@
             color: rgba(255, 255, 255, 0.9) !important;
         }
 
-        body.theme-dark .navbar-nav .nav-link:hover {
-            color: #ffffff !important;
-        }
-
-        /* カード要素のテーマ対応 */
         .card {
             background-color: var(--theme-bg-secondary) !important;
             border-color: var(--theme-border) !important;
             color: var(--theme-text-primary) !important;
         }
 
-        .card-body {
-            background-color: var(--theme-bg-secondary) !important;
+        body.theme-dark h1,
+        body.theme-dark h2,
+        body.theme-dark h3,
+        body.theme-dark h4,
+        body.theme-dark h5,
+        body.theme-dark h6 {
             color: var(--theme-text-primary) !important;
         }
 
-        .card-title, .card-text {
-            color: var(--theme-text-primary) !important;
+        body.theme-dark .text-muted {
+            color: var(--theme-text-secondary) !important;
         }
 
-        /* ボタン要素のダークテーマ対応 */
-        body.theme-dark .btn-primary {
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            color: #ffffff !important;
-        }
-
-        /* 全テーマ共通のアウトラインボタン強化 */
-        .btn-outline-primary {
-            border-width: 2px !important;
-            font-weight: 500 !important;
-        }
-
-        .btn-outline-secondary {
-            border-width: 2px !important;
-            font-weight: 500 !important;
-        }
-
-        .btn-outline-danger {
-            border-width: 2px !important;
-            font-weight: 500 !important;
-        }
-
-        .btn-outline-success {
-            border-width: 2px !important;
-            font-weight: 500 !important;
-        }
-
-        body.theme-dark .btn-secondary {
-            background-color: #6c757d !important;
-            border-color: #6c757d !important;
-            color: #ffffff !important;
-        }
-
-        body.theme-dark .btn-success {
-            background-color: #198754 !important;
-            border-color: #198754 !important;
-            color: #ffffff !important;
-        }
-
-        body.theme-dark .btn-warning {
-            background-color: #ffc107 !important;
-            border-color: #ffc107 !important;
-            color: #000000 !important;
-        }
-
-        body.theme-dark .btn-info {
-            background-color: #0dcaf0 !important;
-            border-color: #0dcaf0 !important;
-            color: #000000 !important;
-        }
-
-        body.theme-dark .btn-dark {
-            background-color: #212529 !important;
-            border-color: #212529 !important;
-            color: #ffffff !important;
-        }
-
-        /* アウトラインボタンのダークテーマ対応 */
-        body.theme-dark .btn-outline-primary {
-            color: #ffffff !important;
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-        }
-
-        body.theme-dark .btn-outline-primary:hover,
-        body.theme-dark .btn-outline-primary:focus {
-            color: #ffffff !important;
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-        }
-
-        body.theme-dark .btn-outline-secondary {
-            color: #ffffff !important;
-            background-color: #6c757d !important;
-            border-color: #6c757d !important;
-        }
-
-        body.theme-dark .btn-outline-secondary:hover,
-        body.theme-dark .btn-outline-secondary:focus {
-            color: #ffffff !important;
-            background-color: #6c757d !important;
-            border-color: #6c757d !important;
-        }
-
-        body.theme-dark .btn-outline-danger {
-            color: #ffffff !important;
-            background-color: #dc3545 !important;
-            border-color: #dc3545 !important;
-        }
-
-        body.theme-dark .btn-outline-danger:hover,
-        body.theme-dark .btn-outline-danger:focus {
-            color: #ffffff !important;
-            background-color: #dc3545 !important;
-            border-color: #dc3545 !important;
-        }
-
-        body.theme-dark .btn-outline-success {
-            color: #ffffff !important;
-            background-color: #198754 !important;
-            border-color: #198754 !important;
-        }
-
-        body.theme-dark .btn-outline-success:hover,
-        body.theme-dark .btn-outline-success:focus {
-            color: #ffffff !important;
-            background-color: #198754 !important;
-            border-color: #198754 !important;
-        }
-
-        /* アラート要素の調整 */
-        .alert {
-            border-color: var(--theme-border) !important;
-        }
-
-        body.theme-dark .alert-success {
-            background-color: #155724 !important;
-            color: #d4edda !important;
-            border-color: #c3e6cb !important;
-        }
-
-        body.theme-dark .alert-danger {
-            background-color: #721c24 !important;
-            color: #f8d7da !important;
-            border-color: #f5c6cb !important;
-        }
-
-        body.theme-dark .alert-warning {
-            background-color: #856404 !important;
-            color: #ffeaa7 !important;
-            border-color: #ffeaa7 !important;
-        }
-
-        body.theme-dark .alert-info {
-            background-color: #0c5460 !important;
-            color: #d1ecf1 !important;
-            border-color: #bee5eb !important;
-        }
-
-        /* フォーム要素の調整 */
         .form-control {
             background-color: var(--theme-bg-secondary) !important;
             border-color: var(--theme-border) !important;
             color: var(--theme-text-primary) !important;
         }
 
-        .form-control:focus {
-            background-color: var(--theme-bg-secondary) !important;
-            color: var(--theme-text-primary) !important;
-            border-color: #86b7fe !important;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
-        }
-
-        body.theme-dark .form-label {
-            color: var(--theme-text-primary) !important;
-        }
-
-        /* テーブル要素の調整 */
-        .table {
-            color: var(--theme-text-primary) !important;
-        }
-
-        .table-striped > tbody > tr:nth-of-type(odd) > td {
-            background-color: var(--theme-bg-secondary) !important;
-        }
-
-        body.theme-dark .table-striped > tbody > tr:nth-of-type(even) > td {
-            background-color: var(--theme-bg-primary) !important;
-        }
-
-        /* モーダル要素の調整 */
-        .modal-content {
-            background-color: var(--theme-bg-primary) !important;
-            color: var(--theme-text-primary) !important;
-        }
-
-        .modal-header {
-            border-bottom-color: var(--theme-border) !important;
-        }
-
-        .modal-footer {
-            border-top-color: var(--theme-border) !important;
-        }
-
-        /* フッターのダークテーマ対応 */
-        body.theme-dark .footer {
-            background-color: #000000 !important;
-        }
-
-        body.theme-dark .footer p {
-            color: #ffffff !important;
-        }
-
-        /* ドロップダウンメニューのダークテーマ対応 */
         body.theme-dark .dropdown-menu {
             background-color: var(--theme-bg-secondary) !important;
             border-color: var(--theme-border) !important;
@@ -333,299 +113,6 @@
             color: var(--theme-text-primary) !important;
         }
 
-        body.theme-dark .dropdown-item:hover {
-            background-color: var(--theme-bg-primary) !important;
-            color: var(--theme-text-primary) !important;
-        }
-
-        body.theme-dark .dropdown-divider {
-            border-color: var(--theme-border) !important;
-        }
-
-        /* リンク色の調整 */
-        body.theme-dark a {
-            color: #79c0ff !important;
-        }
-
-        body.theme-dark a:hover {
-            color: #a5d6ff !important;
-        }
-
-        /* 高詳細度スタイル - 各ページの固有CSSをオーバーライド */
-        
-        /* システム情報ページ専用 */
-        body.theme-dark .system-info {
-            background-color: var(--theme-bg-secondary) !important;
-            color: var(--theme-text-primary) !important;
-            border-color: var(--theme-border) !important;
-        }
-
-        body.theme-dark .info-title {
-            color: var(--theme-text-primary) !important;
-            background-color: rgba(var(--bs-primary-rgb), 0.2) !important;
-        }
-
-        body.theme-dark .info-content {
-            background-color: var(--theme-bg-primary) !important;
-            color: var(--theme-text-primary) !important;
-            border-color: var(--theme-border) !important;
-        }
-
-        /* 棋譜表示ページ専用 */
-        body.theme-dark #kifu-text {
-            background-color: var(--theme-bg-primary) !important;
-            color: var(--theme-text-primary) !important;
-            border-color: var(--theme-border) !important;
-        }
-
-        /* 超高詳細度 - テキスト要素の強制的なスタイル適用 */
-        html body.theme-dark .container h1,
-        html body.theme-dark .container h2,
-        html body.theme-dark .container h3,
-        html body.theme-dark .container h4,
-        html body.theme-dark .container h5,
-        html body.theme-dark .container h6 {
-            color: #ffffff !important;
-        }
-
-        html body.theme-dark .table td,
-        html body.theme-dark .table th,
-        html body.theme-dark .table td *,
-        html body.theme-dark .table th * {
-            color: #ffffff !important;
-        }
-
-        html body.theme-dark .card-header,
-        html body.theme-dark .card-header *,
-        html body.theme-dark .card-body,
-        html body.theme-dark .card-body * {
-            color: #ffffff !important;
-        }
-
-        html body.theme-dark .text-muted,
-        html body.theme-dark small,
-        html body.theme-dark .small {
-            color: #e0e0e0 !important;
-        }
-
-        html body.theme-dark label,
-        html body.theme-dark .form-label {
-            color: #ffffff !important;
-        }
-
-        /* 棋譜一覧ページの特別対応 */
-        html body.theme-dark .table-responsive table,
-        html body.theme-dark .table-responsive table td,
-        html body.theme-dark .table-responsive table th,
-        html body.theme-dark .table-responsive table span,
-        html body.theme-dark .table-responsive table i {
-            color: #ffffff !important;
-        }
-
-        /* ファイル名等の特定要素 */
-        html body.theme-dark .table tbody tr td:first-child,
-        html body.theme-dark .table tbody tr td:nth-child(2),
-        html body.theme-dark .table tbody tr td:nth-child(3),
-        html body.theme-dark .table tbody tr td:nth-child(4) {
-            color: #ffffff !important;
-        }
-
-        /* バッジ要素の強制スタイル */
-        html body.theme-dark .badge,
-        html body.theme-dark .bg-info,
-        html body.theme-dark span.badge {
-            color: #ffffff !important;
-            background-color: #17a2b8 !important;
-        }
-
-        /* フォーム要素の強制スタイル */
-        body.theme-dark .form-control,
-        body.theme-dark .form-select,
-        body.theme-dark textarea,
-        body.theme-dark input[type="text"],
-        body.theme-dark input[type="email"],
-        body.theme-dark input[type="password"] {
-            background-color: var(--theme-bg-secondary) !important;
-            color: var(--theme-text-primary) !important;
-            border-color: var(--theme-border) !important;
-        }
-
-        body.theme-dark .form-control:focus,
-        body.theme-dark .form-select:focus,
-        body.theme-dark textarea:focus,
-        body.theme-dark input[type="text"]:focus,
-        body.theme-dark input[type="email"]:focus,
-        body.theme-dark input[type="password"]:focus {
-            background-color: var(--theme-bg-secondary) !important;
-            color: var(--theme-text-primary) !important;
-            border-color: #79c0ff !important;
-            box-shadow: 0 0 0 0.25rem rgba(121, 192, 255, 0.25) !important;
-        }
-
-        body.theme-dark .form-control::placeholder,
-        body.theme-dark textarea::placeholder,
-        body.theme-dark input::placeholder {
-            color: var(--theme-text-secondary) !important;
-        }
-
-        /* テーブル要素の強制スタイル */
-        body.theme-dark .table {
-            color: var(--theme-text-primary) !important;
-            background-color: var(--theme-bg-primary) !important;
-        }
-
-        body.theme-dark .table-striped > tbody > tr:nth-of-type(odd) > td,
-        body.theme-dark .table-striped > tbody > tr:nth-of-type(odd) > th {
-            background-color: rgba(255, 255, 255, 0.05) !important;
-        }
-
-        body.theme-dark .table-hover > tbody > tr:hover > td,
-        body.theme-dark .table-hover > tbody > tr:hover > th {
-            background-color: rgba(255, 255, 255, 0.1) !important;
-        }
-
-        body.theme-dark .table-dark,
-        body.theme-dark .table-dark th,
-        body.theme-dark .table-dark td {
-            background-color: var(--theme-bg-secondary) !important;
-            color: var(--theme-text-primary) !important;
-            border-color: var(--theme-border) !important;
-        }
-
-        /* 最高詳細度 - 強制的なテキストカラー適用 */
-        html body.theme-dark div.container h1,
-        html body.theme-dark div.container h2,
-        html body.theme-dark div.container h3,
-        html body.theme-dark div.container h4,
-        html body.theme-dark div.table-responsive table tbody tr td,
-        html body.theme-dark div.table-responsive table thead tr th,
-        html body.theme-dark div.card div.card-header h5,
-        html body.theme-dark div.card div.card-body,
-        html body.theme-dark div.d-flex div small.text-muted {
-            color: #ffffff !important;
-        }
-
-        /* Bootstrap クラスのオーバーライド */
-        html body.theme-dark .text-muted.small,
-        html body.theme-dark small.text-muted,
-        html body.theme-dark .text-muted {
-            color: #e0e0e0 !important;
-        }
-
-        /* テーブル要素の最強オーバーライド */
-        html body.theme-dark table.table tbody tr td:nth-child(1),
-        html body.theme-dark table.table tbody tr td:nth-child(2), 
-        html body.theme-dark table.table tbody tr td:nth-child(3),
-        html body.theme-dark table.table tbody tr td:nth-child(4),
-        html body.theme-dark table.table tbody tr td:nth-child(5) {
-            color: #ffffff !important;
-        }
-
-        html body.theme-dark table.table tbody tr td span.badge,
-        html body.theme-dark table.table tbody tr td i.fas {
-            color: #ffffff !important;
-        }
-
-        /* 全てのラベル要素 */
-        body.theme-dark label {
-            color: var(--theme-text-primary) !important;
-        }
-
-        /* 全てのpre要素（コードブロック） */
-        body.theme-dark pre {
-            background-color: var(--theme-bg-secondary) !important;
-            color: var(--theme-text-primary) !important;
-            border-color: var(--theme-border) !important;
-        }
-
-        /* 将棋盤要素 */
-        body.theme-dark #board-1 {
-            background-color: var(--theme-bg-secondary) !important;
-            border: 1px solid var(--theme-border) !important;
-            border-radius: 8px !important;
-            padding: 10px !important;
-        }
-
-        /* すべてのtext-mutedクラス */
-        body.theme-dark .text-muted {
-            color: var(--theme-text-secondary) !important;
-        }
-
-        /* バッジ要素 */
-        body.theme-dark .badge {
-            color: #ffffff !important;
-        }
-
-        body.theme-dark .bg-info {
-            background-color: #17a2b8 !important;
-        }
-
-        /* アイコン色の調整 */
-        body.theme-dark .text-primary {
-            color: #79c0ff !important;
-        }
-
-        /* カスタムクラスでのダークモード対応強化 */
-        body.theme-dark * {
-            border-color: var(--theme-border);
-        }
-
-        body.theme-dark .info-section {
-            border-bottom-color: #79c0ff !important;
-        }
-
-        body.theme-dark .warning {
-            color: #ffc107 !important;
-        }
-
-        body.theme-dark .success {
-            color: #28a745 !important;
-        }
-
-        body.theme-dark .info {
-            color: #17a2b8 !important;
-        }
-
-        /* 最終的な強制スタイル - 最高詳細度 */
-        html body.theme-dark .container .row .col-12 h2,
-        html body.theme-dark .container .row .col-12 .d-flex .mb-4 h2,
-        html body.theme-dark .container .table-responsive .table .table-striped tbody tr td,
-        html body.theme-dark .container .table-responsive .table thead .table-dark tr th {
-            color: #ffffff !important;
-        }
-
-        /* 最終手段 - インラインスタイルに近い詳細度 */
-        html body.theme-dark[class] .table[class] td[class],
-        html body.theme-dark[class] .table[class] th[class],
-        html body.theme-dark[class] h1[class],
-        html body.theme-dark[class] h2[class],
-        html body.theme-dark[class] h3[class],
-        html body.theme-dark[class] h4[class],
-        html body.theme-dark[class] h5[class],
-        html body.theme-dark[class] h6[class] {
-            color: #ffffff !important;
-        }
-
-        html body.theme-dark[class] .text-muted[class] {
-            color: #e0e0e0 !important;
-        }
-
-        /* 緊急時オーバーライド */
-        body.theme-dark .table td,
-        body.theme-dark .table th {
-            color: #ffffff !important;
-        }
-
-        body.theme-dark h1,
-        body.theme-dark h2,
-        body.theme-dark h3,
-        body.theme-dark h4,
-        body.theme-dark h5,
-        body.theme-dark h6 {
-            color: #ffffff !important;
-        }
-
-        /* フッター配置の改善 */
         html, body {
             height: 100%;
         }
@@ -638,29 +125,25 @@
         .main-content-wrapper {
             flex: 1;
             padding-top: 1rem;
-            padding-bottom: 3rem; /* フッターとの間にスペースを追加 */
+            padding-bottom: 3rem;
         }
 
         .main-content-wrapper .container {
             padding-top: 4rem;
-            padding-bottom: 2rem; /* コンテンツの下部にも余白を追加 */
+            padding-bottom: 2rem;
         }
 
         footer {
             margin-top: auto;
         }
     </style>
-    <!-- Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- KifuForJS（将棋ページ向け。必要なら各ページのheadブロックに移動） -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/kifu-for-js@5/bundle/kifu-for-js.min.js" charset="utf-8"></script>
 
     {% block head %}{% endblock %}
 
-    <!-- テーマ適用JavaScript -->
     <script>
-      // ページ読み込み時にテーマを適用
       document.addEventListener('DOMContentLoaded', function() {
           try {
               const savedSettings = localStorage.getItem('theme-settings');
@@ -678,34 +161,19 @@
           const html = document.documentElement;
           const body = document.body;
           
-          // 既存のテーマクラスを削除
           html.className = html.className.replace(/theme-\w+/g, '');
           body.className = body.className.replace(/theme-\w+/g, '');
           
-          // デバッグ情報を出力
-          console.log('=== テーマ適用デバッグ ===');
-          console.log('要求されたテーマ:', theme);
-          
           if (theme === 'auto') {
-              // システム設定検出
               const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
               const isDark = mediaQuery.matches;
-              const hasSupport = mediaQuery.media !== 'not all';
-              
-              console.log('システム設定検出結果:');
-              console.log('  - prefers-color-scheme サポート:', hasSupport);
-              console.log('  - メディアクエリ文字列:', mediaQuery.media);
-              console.log('  - ダークモード検出:', isDark);
-              console.log('  - システム設定値:', isDark ? 'dark' : 'light');
               
               if (isDark) {
                   html.classList.add('theme-dark');
                   body.classList.add('theme-dark');
-                  console.log('  - 適用されたCSSクラス: theme-dark');
               } else {
                   html.classList.add('theme-light');
                   body.classList.add('theme-light');
-                  console.log('  - 適用されたCSSクラス: theme-light');
               }
           } else {
               if (theme === 'dark') {
@@ -715,54 +183,30 @@
                   html.classList.add('theme-light');
                   body.classList.add('theme-light');
               }
-              console.log('固定テーマ適用:', `theme-${theme}`);
           }
-          
-          console.log('body要素のクラス一覧:', body.className);
-          console.log('========================');
       }
       
-      // システムのカラースキーム変更を監視
       if (window.matchMedia) {
           const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-          
-          // 初期状態をログ出力
-          console.log('=== システム監視デバッグ ===');
-          console.log('MediaQuery サポート: あり');
-          console.log('初期システム設定:', darkModeQuery.matches ? 'dark' : 'light');
-          
-          // 変更監視
           darkModeQuery.addListener((e) => {
-              console.log('=== システム設定変更検出 ===');
-              console.log('変更後の設定:', e.matches ? 'dark' : 'light');
-              console.log('変更時刻:', new Date().toLocaleTimeString());
-              
               try {
                   const savedSettings = localStorage.getItem('theme-settings');
                   if (savedSettings) {
                       const settings = JSON.parse(savedSettings);
-                      console.log('保存済みテーマ設定:', settings.theme);
                       if (settings.theme === 'auto') {
-                          console.log('自動テーマモードのため、システム変更に追従します');
                           applyTheme('auto');
-                      } else {
-                          console.log('固定テーマモードのため、システム変更を無視します');
                       }
                   }
               } catch (e) {
                   console.warn('自動テーマ切り替えに失敗:', e);
               }
-              console.log('============================');
           });
-      } else {
-          console.warn('=== MediaQuery 未サポート ===');
-          console.warn('このブラウザはprefers-color-schemeをサポートしていません');
       }
 
-      // ドロップダウン内のテーマ選択を処理
       function persistTheme(theme) {
           try { localStorage.setItem('theme-settings', JSON.stringify({ theme })); } catch {}
       }
+      
       document.addEventListener('DOMContentLoaded', function() {
           document.querySelectorAll('.js-theme-select').forEach(function(el) {
               el.addEventListener('click', function(e) {
@@ -774,13 +218,9 @@
           });
       });
     </script>
-    <!-- boostrapはbootstrapの読み込み -->
-
 </head>
-<!-- ナビゲーションバー -->
 
 <body>
-    <!-- フラッシュメッセージの表示エリア -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     {% for category, message in messages %}
@@ -791,21 +231,19 @@
     {% endfor %}
     {% endif %}
     {% endwith %}
-    <!-- ナビゲーションバー -->
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-        <div class="container"> <!-- containerはコンテナ -->
-            <a class="navbar-brand" href="{{ url_for('index') }}">Navbar</a> <!-- navbar-brandはナビゲーションバーのブランド -->
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">Navbar</a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <!-- navbar-togglerはナビゲーションバーを折りたたむボタン data-bs-toggle="collapse"はナビゲーションバーを折りたたむ data-bs-target="#navbarNav"はナビゲーションバーを折りたたむ id="navbarNav"はナビゲーションバーを折りたたむ id aria-controls="navbarNav"はナビゲーションバーを折りたたむ aria-expanded="false"はナビゲーションバーを折りたたむ aria-label="Toggle navigation"はナビゲーションバーを折りたたむ -->
-                <span class="navbar-toggler-icon"></span> <!-- navbar-toggler-iconはナビゲーションバーを折りたたむボタンのアイコン -->
+                <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- collapseはナビゲーションバーを折りたたむ id="navbarNav"はナビゲーションバーを折りたたむ -->
-                <ul class="navbar-nav"> <!-- navbar-navはナビゲーションバーのリスト -->
-                    <li class="nav-item dropdown"> <!-- nav-itemはナビゲーションバーのリストのアイテム -->
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="productsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             商品
                         </a>
@@ -834,16 +272,14 @@
                             <li><a class="dropdown-item" href="{{ url_for('detector.gallery') }}">画像一覧</a></li>
                         </ul>
                     </li>
-                    
                 </ul>
 
-                <ul class="navbar-nav ms-auto"> <!-- navbar-navはナビゲーションバーのリスト ms-autoはナビゲーションバーのリストを右に寄せる -->
-                    <li class="nav-item"> <!-- nav-itemはナビゲーションバーのリストのアイテム -->
-                        <a class="nav-link" href="{{ url_for('contact.contact') }}">問い合わせ</a> <!-- nav-linkはナビゲーションバーのリストのアイテムのリンク -->
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('contact.contact') }}">問い合わせ</a>
                     </li>
 
                     {% if current_user.is_authenticated %}
-                    <!-- ログイン済みの場合 -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i> {{ current_user.username }}
@@ -869,7 +305,6 @@
                             <li><a class="dropdown-item js-theme-select" data-theme="dark" href="#">
                                 <i class="bi bi-moon"></i> ダーク
                             </a></li>
-                            
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                 <i class="bi bi-box-arrow-right"></i> ログアウト
@@ -877,7 +312,6 @@
                         </ul>
                     </li>
                     {% else %}
-                    <!-- 未ログインの場合：人型アイコンのドロップダウンに集約 -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="guestDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i>
@@ -907,26 +341,23 @@
 
     <div class="main-content-wrapper">
         <div class="container">
-            <main>{% block body %}{% endblock %}</main> <!-- メインコンテンツ -->
-            {% block content %}{% endblock %} <!-- 追加のコンテンツブロック -->
+            <main>{% block body %}{% endblock %}</main>
+            {% block content %}{% endblock %}
             {% block extra_js %}{% endblock %}
         </div>
     </div>
     
-    <!-- ちらつき防止: ページ読み込み完了後に透明度を戻す -->
     <script>
         window.addEventListener('load', function() {
             document.documentElement.classList.add('loaded');
         });
         
-        // DOMが読み込まれたらすぐに実行（loadイベントより早い）
         document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.classList.add('loaded');
         });
     </script>
 
     <footer class="footer text-center pt-4 bg-dark">
-        <!-- footerはフッター text-centerはテキストを中央に寄せる pt-4はマージンの上の余白 bg-darkはフッターの背景色を黒くする -->
         <div class="container">
             <div class="row">
                 <div class="col">
