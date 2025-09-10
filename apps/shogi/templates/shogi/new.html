@@ -123,6 +123,22 @@ document.addEventListener('input', function(e){
     try{ KifuForJS.load({ kifu: e.target.value }, 'board-1'); }catch(_){}
   }
 });
+
+// フォーム送信時のバリデーション
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const titleInput = document.getElementById('title');
+    
+    form.addEventListener('submit', function(e) {
+        const title = titleInput.value.trim();
+        if (!title) {
+            e.preventDefault();
+            alert('タイトルを入力してください');
+            titleInput.focus();
+            return false;
+        }
+    });
+});
 </script>
 {% endblock %}
 .container {

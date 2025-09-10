@@ -6,10 +6,42 @@
 
 from flask import render_template, request, jsonify, session, current_app, flash, redirect, url_for
 from werkzeug.utils import secure_filename
+import re
 import os
 import datetime
 from .utils import _nl, _to_kif_safe, _ensure_dir
 from . import shogi_bp
+
+
+def safe_filename_jp(filename):
+    """
+    日本語文字を保持しつつ、ファイルシステムに安全なファイル名を生成
+    
+    Args:
+        filename (str): 元のファイル名
+        
+    Returns:
+        str: 安全なファイル名
+    """
+    if not filename:
+        return ""
+    
+    # 危険な文字を除去 (ファイルシステムで問題となる文字)
+    unsafe_chars = r'[<>:"/\\|?*\x00-\x1f]'
+    filename = re.sub(unsafe_chars, '', filename)
+    
+    # 連続する空白を単一のアンダースコアに変換
+    filename = re.sub(r'\s+', '_', filename.strip())
+    
+    # ファイル名が空の場合のフォールバック
+    if not filename:
+        return "kifu"
+    
+    # 長すぎる場合は切り詰め (Windowsの制限を考慮)
+    if len(filename) > 200:
+        filename = filename[:200]
+    
+    return filename
 
 
 UPLOAD_DIR = "apps/static/kifu"
@@ -53,8 +85,11 @@ def new():
         if fmt == "kif":
             text = _to_kif_safe(text)
         
-        ts = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        fname = secure_filename(f"{title}-{ts}.{fmt}")
+        # タイトルが空の場合のフォールバック処理
+        if not title.strip():
+            fname = f"棋譜.{fmt}"
+        else:
+            fname = safe_filename_jp(f"{title}.{fmt}")
         outdir = os.path.join(current_app.root_path, UPLOAD_DIR)
         current_app.logger.info(f"Output directory: {outdir}")
         
