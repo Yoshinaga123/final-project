@@ -193,9 +193,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <style>
 /* ログイン画面専用スタイル */
+/* Light mode (inherits variable text color) */
 .container, .card, .card-header, .card-body {
-    /* background-color: #ffffff !important; */
-    color: #212529 !important;
+    color: var(--c-text, #212529) !important;
+}
+
+/* Dark mode readable text */
+body.theme-dark .container,
+body.theme-dark .card,
+body.theme-dark .card-header,
+body.theme-dark .card-body {
+    color: #f5f6f7 !important;
 }
 
 .btn-primary {
@@ -205,17 +213,38 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .form-control {
-    /* background-color: #ffffff !important; */
     border-color: #ced4da !important;
-    color: #212529 !important;
+    color: var(--c-text, #212529) !important;
+}
+
+body.theme-dark .form-control {
+    color: #f5f6f7 !important;
+    border-color: #2b323b !important;
+    background: #222a33 !important;
 }
 
 .form-control:focus {
-    /* background-color: #ffffff !important; */
     border-color: #86b7fe !important;
-    color: #212529 !important;
+    color: var(--c-text, #212529) !important;
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
 }
+
+body.theme-dark .form-control:focus {
+    color: #ffffff !important;
+}
+
+/* Placeholder colors (light & dark) */
+.form-control::placeholder { color: #6c757d !important; opacity: 1; }
+.form-control::-webkit-input-placeholder { color: #6c757d !important; }
+.form-control::-moz-placeholder { color: #6c757d !important; }
+.form-control:-ms-input-placeholder { color: #6c757d !important; }
+.form-control:-moz-placeholder { color: #6c757d !important; }
+
+body.theme-dark .form-control::placeholder { color: var(--c-text-soft, #b1bcc8) !important; opacity: 1; }
+body.theme-dark .form-control::-webkit-input-placeholder { color: var(--c-text-soft, #b1bcc8) !important; }
+body.theme-dark .form-control::-moz-placeholder { color: var(--c-text-soft, #b1bcc8) !important; }
+body.theme-dark .form-control:-ms-input-placeholder { color: var(--c-text-soft, #b1bcc8) !important; }
+body.theme-dark .form-control:-moz-placeholder { color: var(--c-text-soft, #b1bcc8) !important; }
 
 /* カスタムバリデーションスタイル - 詳細度を高くして確実に適用 */
 .container .card .card-body .is-invalid {
