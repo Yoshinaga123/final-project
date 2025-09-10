@@ -935,3 +935,25 @@ jinja2.exceptions.TemplateNotFound: contact_complete.html
     raise TemplateNotFound(template)
 jinja2.exceptions.TemplateNotFound: contact_complete.html
  [in C:\Users\yoshinaga_kosuke\flaskbook\app.py:235]
+2025-09-09 19:43:45,095 ERROR: Login error: (sqlite3.OperationalError) no such table: users
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password_hash AS users_password_hash, users.created_at AS users_created_at, users.updated_at AS users_updated_at, users.is_active AS users_is_active, users.is_admin AS users_is_admin, users.organization AS users_organization, users.last_login AS users_last_login, users.access_count AS users_access_count, users.status AS users_status, users.login_attempts AS users_login_attempts, users.role AS users_role 
+FROM users 
+WHERE users.username = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('a', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in C:\Users\gggmt\my-project\final-project\apps\auth\routes.py:40]
+2025-09-09 19:47:49,877 ERROR: Login error: (sqlite3.OperationalError) no such table: users
+[SQL: SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.password_hash AS users_password_hash, users.created_at AS users_created_at, users.updated_at AS users_updated_at, users.is_active AS users_is_active, users.is_admin AS users_is_admin, users.organization AS users_organization, users.last_login AS users_last_login, users.access_count AS users_access_count, users.status AS users_status, users.login_attempts AS users_login_attempts, users.role AS users_role 
+FROM users 
+WHERE users.username = ?
+ LIMIT ? OFFSET ?]
+[parameters: ('a', 1, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in C:\Users\gggmt\my-project\final-project\apps\auth\routes.py:40]
+2025-09-09 19:48:13,256 ERROR: Database error during registration: (sqlite3.OperationalError) no such table: users
+[SQL: INSERT INTO users (username, email, password_hash, created_at, updated_at, is_active, is_admin, organization, last_login, access_count, status, login_attempts, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('a', 'a@example.lp', 'scrypt:32768:8:1$ORKpT7sS8ExST3Sv$ef8c906568bb7262dfb9f785c6c35f2418b0bdd15dfbe30826ea3ed0c914f9b1c08a280b002c7602184a9ff8f53ba23174b404dd4aaf5cb5f4e7faf8555f2fbf', '2025-09-09 10:48:13.254481', '2025-09-09 10:48:13.254481', 1, 0, None, None, 0, 'active', 0, 'user')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in C:\Users\gggmt\my-project\final-project\apps\auth\routes.py:83]
+2025-09-09 19:48:13,256 ERROR: Registration error: (sqlite3.OperationalError) no such table: users
+[SQL: INSERT INTO users (username, email, password_hash, created_at, updated_at, is_active, is_admin, organization, last_login, access_count, status, login_attempts, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]
+[parameters: ('a', 'a@example.lp', 'scrypt:32768:8:1$ORKpT7sS8ExST3Sv$ef8c906568bb7262dfb9f785c6c35f2418b0bdd15dfbe30826ea3ed0c914f9b1c08a280b002c7602184a9ff8f53ba23174b404dd4aaf5cb5f4e7faf8555f2fbf', '2025-09-09 10:48:13.254481', '2025-09-09 10:48:13.254481', 1, 0, None, None, 0, 'active', 0, 'user')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8) [in C:\Users\gggmt\my-project\final-project\apps\auth\routes.py:111]
