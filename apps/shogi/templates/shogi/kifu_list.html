@@ -21,10 +21,20 @@
         color: #ffffff !important;
     }
 
+    /* 常時黒背景: ホバー時も色変更しない */
     body.theme-dark .table-hover > tbody > tr:hover > td {
-        background-color: rgba(255, 255, 255, 0.1) !important;
+        background-color: #121518 !important;
         color: #ffffff !important;
     }
+
+    /* 全行を同じ濃い背景に統一 */
+    body.theme-dark .kifu-table tbody tr td {
+        background-color: #121518 !important;
+    }
+    body.theme-dark .kifu-table.table-striped > tbody > tr:nth-of-type(odd) > td {
+        background-color: #121518 !important; /* ストライプを無効化 */
+    }
+    body.theme-dark .kifu-table tbody tr td { border-top-color: #1f252b !important; }
 
     body.theme-dark .table-dark {
         background-color: var(--theme-bg-secondary) !important;
@@ -95,7 +105,7 @@
 
             {% if kifu_files %}
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover kifu-table">
+                    <table class="table table-hover kifu-table">
                         <thead class="table-dark">
                             <tr>
                                 <th>ファイル名</th>
