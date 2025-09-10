@@ -189,3 +189,25 @@ html { scroll-behavior: smooth; }
 
 /* End of restored rich UI stylesheet */
 
+/* =============================================
+   Kifu (Game Record) Table Accessibility Tweaks
+   - Improve contrast of striped rows (light + dark)
+   - Preserve existing hover highlight
+   - Avoid overpowering background while clearly separating rows
+   ============================================= */
+.kifu-table { border-collapse: separate; border-spacing: 0; }
+.kifu-table tbody tr { transition: background-color var(--transition), color var(--transition); }
+.kifu-table.table-striped > tbody > tr:nth-of-type(odd) {
+	background-color: var(--c-bg-alt) !important; /* higher contrast than default rgba stripe */
+}
+html.theme-dark .kifu-table.table-striped > tbody > tr:nth-of-type(odd) {
+	background-color: #242c34 !important; /* dark alt surface */
+}
+.kifu-table td, .kifu-table th { vertical-align: middle; }
+.kifu-table td:first-child { font-weight: 500; }
+.kifu-table tbody tr + tr td { border-top: 1px solid var(--c-border); }
+html.theme-dark .kifu-table tbody tr + tr td { border-top: 1px solid var(--c-divider); }
+.kifu-table.table-hover tbody tr:hover { background: var(--c-primary-soft) !important; }
+html.theme-dark .kifu-table.table-hover tbody tr:hover { background: rgba(255,255,255,.08) !important; }
+
+
