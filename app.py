@@ -7,18 +7,13 @@ create_app関数が定義されています。
 
 import os
 import logging
-import sys
-import platform
-import time
 from logging.handlers import RotatingFileHandler
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for
 from flask_debugtoolbar import DebugToolbarExtension
-from flask_mail import Mail, Attachment, Message
+from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
-from email_validator import validate_email, EmailNotValidError
-from datetime import datetime
 
 # 環境変数の読み込み
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
@@ -46,6 +41,10 @@ def create_app(config_name=None):
     from config import config
     config_name = config_name or os.environ.get('FLASK_CONFIG') or 'default'
     app.config.from_object(config[config_name])
+
+    # SECRET_KEY 警告（本番でデフォルトキーならログ警告）
+    if app.config.get('SECRET_KEY', '').startswith('dev-secret-key'):
+        app.logger.warning('SECURITY: SECRET_KEY is using development default. Set a strong SECRET_KEY for production.')
     
     # データベースの初期化
     db.init_app(app)
@@ -81,7 +80,7 @@ def create_app(config_name=None):
     # 拡張機能の初期化
     register_extensions(app)
     
-    # ログ設定
+    # ログ設定（早めに初期化して以降のログを残す）
     configure_logging(app)
     
     # ルートの登録
@@ -131,55 +130,37 @@ def register_extensions(app):
 
 
 def configure_logging(app):
-    """ログ設定を構成"""
-    # ログディレクトリを作成
+    """ログ設定を構成 (多重追加防止 & 環境別レベル)"""
+    # 既存ハンドラがあれば一度クリア（reloader で多重追加されるのを防ぐ）
+    if app.logger.handlers:
+        for h in list(app.logger.handlers):
+            app.logger.removeHandler(h)
+
     if not os.path.exists('logs'):
         os.mkdir('logs')
-    
-    # アプリケーションログ（INFO以上）- ルートディレクトリ
-    app_file_handler = RotatingFileHandler(
-        'app.log', maxBytes=102400, backupCount=5, encoding='utf-8'
-    )
-    app_file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    ))
-    app_file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(app_file_handler)
-    
-    # アプリケーションログ（INFO以上）- logsディレクトリ（バックアップ用）
-    logs_file_handler = RotatingFileHandler(
-        'logs/app.log', maxBytes=102400, backupCount=5, encoding='utf-8'
-    )
-    logs_file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    ))
-    logs_file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(logs_file_handler)
-    
-    # エラーログ（ERROR以上）
-    error_file_handler = RotatingFileHandler(
-        'error.log', maxBytes=102400, backupCount=5, encoding='utf-8'
-    )
-    error_file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    ))
-    error_file_handler.setLevel(logging.ERROR)
-    app.logger.addHandler(error_file_handler)
-    
-    # ログレベルをDEBUGに設定（より詳細なログを記録）
-    app.logger.setLevel(logging.DEBUG)
-    
-    # コンソールにもログを出力
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s'
-    ))
-    app.logger.addHandler(console_handler)
-    
-    # アプリケーション起動ログ
-    app.logger.info('アプリケーション起動')
-    app.logger.info('ログ設定完了 - app.log と error.log に記録されます')
+
+    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]')
+
+    def add_rotating(path: str, level: int):
+        handler = RotatingFileHandler(path, maxBytes=1024*200, backupCount=5, encoding='utf-8')
+        handler.setFormatter(formatter)
+        handler.setLevel(level)
+        app.logger.addHandler(handler)
+        return handler
+
+    add_rotating('app.log', logging.INFO)
+    add_rotating('logs/app.log', logging.INFO)
+    add_rotating('error.log', logging.ERROR)
+
+    console = logging.StreamHandler()
+    console.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
+    console.setLevel(logging.DEBUG if app.debug else logging.INFO)
+    app.logger.addHandler(console)
+
+    # 基本レベル
+    app.logger.setLevel(logging.DEBUG if app.debug else logging.INFO)
+    app.logger.debug('Debug logging enabled')
+    app.logger.info('アプリケーション起動 - ログ設定完了')
 
 
 def register_routes(app):
@@ -189,13 +170,12 @@ def register_routes(app):
     def index():
         """ルートアクセス処理"""
         from flask_login import current_user
-        from flask_login import current_user
-        
+
         # 未認証ユーザーはログイン画面へ
         if not current_user.is_authenticated:
             app.logger.info('未認証ユーザー - ログイン画面へリダイレクト')
             return redirect(url_for('auth.login'))
-        
+
         # 認証済みユーザーはダッシュボードを表示
         app.logger.info(f'認証済みユーザー {current_user.username} - ダッシュボード表示')
         return render_template("index.html")
@@ -242,7 +222,8 @@ def register_error_handlers(app):
         app.logger.error(f'Traceback: {traceback.format_exc()}')
         try:
             return render_template('error_pages/500.html'), 500
-        except:
+        except Exception as template_error:  # テンプレート描画自体の失敗はフォールバック
+            app.logger.error(f'500 template fallback: {template_error}')
             return f"<h1>Internal Server Error</h1><p>{error}</p>", 500
 
 
