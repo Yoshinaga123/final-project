@@ -12,7 +12,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_mail import Mail
 from flask_migrate import Migrate
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from dotenv import load_dotenv
 
 # 環境変数の読み込み
@@ -66,6 +66,11 @@ def create_app(config_name=None):
     csrf.exempt('debugtoolbar.sql_select')
     csrf.exempt('debugtoolbar.sql_explain')
     
+    # Jinja から csrf_token() を利用可能にし、HTMX 用 <meta name="csrf-token"> を確実に生成
+    @app.context_processor
+    def inject_csrf_token():
+        return dict(csrf_token=generate_csrf)
+
     # 静的ファイルを除外
     @app.before_request
     def exempt_static():

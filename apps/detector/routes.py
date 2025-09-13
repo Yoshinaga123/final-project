@@ -253,11 +253,10 @@ def gallery():
             meta = load_detection_results(img.filename)
             if meta:
                 results_meta[img.id] = {'count': meta.get('count', 0), 'updated_at': meta.get('updated_at')}
-
         return render_template('detector/gallery.html', 
-                             images=images, 
-                             count=len(images),
-                             results_meta=results_meta)
+                               images=images, 
+                               count=len(images),
+                               results_meta=results_meta)
     except Exception as e:
         current_app.logger.error(f"ギャラリー表示エラー: {e}")
         flash('ギャラリーの表示に失敗しました', 'error')
@@ -452,7 +451,7 @@ def results():
     """検知結果一覧ページ（廃止予定 - galleryに統合）"""
     return redirect(url_for('detector.gallery'))
 
-@detector_bp.route('/delete/<int:image_id>', methods=['POST'])
+@detector_bp.route('/delete/<int:image_id>', methods=['POST', 'DELETE'])
 @login_required
 def delete_image(image_id):
     """ユーザーの画像を論理削除"""
@@ -463,7 +462,10 @@ def delete_image(image_id):
     ).first()
     if not img:
         flash('対象の画像が見つかりません', 'error')
-        return redirect(url_for('detector.index'))
+        # HXリクエストなら404で返す
+        if request.headers.get('HX-Request'):
+            return ('', 404)
+        return redirect(url_for('detector.gallery'))
 
     try:
         # 物理ファイル削除（存在する場合のみ、失敗しても処理継続）
@@ -473,6 +475,11 @@ def delete_image(image_id):
             if os.path.exists(file_path):
                 os.remove(file_path)
                 current_app.logger.info(f"画像ファイルを削除しました: {img.filename}")
+            # 付随する検知結果JSONも削除
+            sidecar = result_json_path(img.filename)
+            if os.path.exists(sidecar):
+                os.remove(sidecar)
+                current_app.logger.info(f"検知結果JSONを削除しました: {os.path.basename(sidecar)}")
         except Exception as fe:
             current_app.logger.warning(f"ファイル削除に失敗しました（スキップ）: {fe}")
 
@@ -484,4 +491,35 @@ def delete_image(image_id):
         current_app.logger.error(f"画像削除エラー: {e}")
         db.session.rollback()
         flash('画像の削除に失敗しました', 'error')
-    return redirect(url_for('detector.index'))
+    # HTMX経由なら空でOK（hx-swap=outerHTML により要素が消える）
+    if request.headers.get('HX-Request'):
+        return ('', 200)
+    return redirect(url_for('detector.gallery'))
+
+
+def _image_to_item(img: UserImage):
+    """テンプレート用のギャラリーアイテム辞書を作成（サムネは未生成のためNone）"""
+    return {
+        'id': img.id,
+        'filename': img.filename,
+        'original_filename': img.original_filename,
+        'alt': img.original_filename or img.filename,
+        'thumb_webp_url': None,
+        'thumb2x_webp_url': None,
+        'thumb_fallback_jpg': None,
+    }
+
+
+@detector_bp.route('/gallery/partial')
+@login_required
+def gallery_partial():
+    """ギャラリーの部分テンプレート（HTMX用）"""
+    images = UserImage.query.filter_by(
+        user_id=current_user.id,
+        is_active=True
+    ).order_by(UserImage.uploaded_at.desc()).all()
+    items = [_image_to_item(img) for img in images]
+    return render_template('detector/_gallery_grid.html', items=items)
+
+
+# 再検知機能は廃止しました（2025-09）。関連するUIは削除済み。

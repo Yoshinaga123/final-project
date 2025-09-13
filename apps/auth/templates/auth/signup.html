@@ -15,15 +15,31 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="mb-3">
                             <label for="username" class="form-label">ユーザー名</label>
-                            <input type="text" class="form-control" id="username" name="username" placeholder="例: shogi_player" required>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="例: shogi_player" autocomplete="username" required>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">メールアドレス</label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com" required>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">パスワード</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="8文字以上推奨" required>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="16文字以上 もしくは 8文字以上＋3種類以上" autocomplete="new-password" minlength="8" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePw" aria-label="パスワード表示切替">
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- 強度メーター（UIのみ。JSは後で追加） -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-muted">パスワード強度</small>
+                                <small id="pw-strength-text" class="text-muted">未入力</small>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div id="pw-strength-bar" class="progress-bar bg-secondary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div id="pw-error" class="form-text text-danger mt-2" aria-live="polite"></div>
                         </div>
                         <div class="d-grid">
                             <button type="submit" class="btn btn-success">登録</button>
@@ -43,6 +59,153 @@
         /* Signup placeholder colors */
         .form-control::placeholder { color:#6c757d; opacity:1; }
         body.theme-dark .form-control::placeholder { color: var(--c-text-soft, #b1bcc8); }
+        /* Progress bar colors for strength levels (to be set by JS via classes) */
+        .progress-bar.bg-weak { background-color: #dc3545 !important; }
+        .progress-bar.bg-fair { background-color: #fd7e14 !important; }
+        .progress-bar.bg-good { background-color: #ffc107 !important; }
+        .progress-bar.bg-strong { background-color: #198754 !important; }
+        /* Dark mode text nuance */
+        body.theme-dark #pw-strength-text { color: var(--c-text-soft, #b1bcc8) !important; }
         </style>
+        {% endblock %}
+        {% block extra_js %}
+        <script>
+        (function(){
+            const form = document.querySelector('form');
+            if (!form) return;
+            const username = document.getElementById('username');
+            const email = document.getElementById('email');
+            const password = document.getElementById('password');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const bar = document.getElementById('pw-strength-bar');
+            const label = document.getElementById('pw-strength-text');
+            const err = document.getElementById('pw-error');
+
+            // Track whether user interacted with a field (for UX-friendly error display)
+            const touched = { username: false, email: false, password: false };
+            let submitted = false;
+
+                function scorePassword(pw){
+                if(!pw) return 0;
+                let score = 0;
+                if (pw.length >= 8) score++;
+                if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+                if (/\d/.test(pw)) score++;
+                if (/[^A-Za-z0-9]/.test(pw)) score++;
+                // penalize common patterns
+                const common = /password|12345|qwerty|abc123|letmein|111111/i;
+                if (common.test(pw)) score = Math.max(0, score - 2);
+                return Math.max(0, Math.min(4, score));
+            }
+
+                function countClasses(pw){
+                    let c = 0;
+                    if (/[a-z]/.test(pw)) c++;
+                    if (/[A-Z]/.test(pw)) c++;
+                    if (/\d/.test(pw)) c++;
+                    if (/[^A-Za-z0-9]/.test(pw)) c++;
+                    return c;
+                }
+
+                    function updateMeter(showErrors){
+                const pw = password.value || '';
+                const s = scorePassword(pw);
+                const perc = [0,25,50,75,100][s];
+                const texts = ['未入力','弱い','普通','良い','強い'];
+                const classes = ['bg-secondary','bg-weak','bg-fair','bg-good','bg-strong'];
+                // reset classes
+                bar.classList.remove('bg-secondary','bg-weak','bg-fair','bg-good','bg-strong');
+                bar.style.width = perc + '%';
+                bar.setAttribute('aria-valuenow', perc.toString());
+                bar.classList.add(classes[s]);
+                label.textContent = texts[s];
+
+                    // Balanced policy
+                    const classesCount = countClasses(pw);
+                    const ok = (pw.length >= 16) || (pw.length >= 8 && classesCount >= 3);
+
+                    // error/help messages
+                    if (showErrors) {
+                        const msgs = [];
+                        if (!ok) {
+                            msgs.push('16文字以上 もしくは 8文字以上＋小/大/数字/記号のうち3種類以上を含めてください');
+                            if (pw.length < 8) msgs.push('現在の長さ: ' + pw.length + '文字');
+                            if (pw.length >= 8 && classesCount < 3) msgs.push('現在の種類数: ' + classesCount + '種類');
+                        }
+                        if (/password|12345|qwerty|abc123|letmein|111111/i.test(pw)) {
+                            msgs.push('推測されやすい語句は避けてください'); // アドバイス（不合格条件ではない）
+                        }
+                        err.textContent = msgs.join('、');
+                    } else {
+                        err.textContent = '';
+                    }
+
+                    return ok;
+            }
+
+            function simpleEmailOk(v){
+                return /.+@.+\..+/.test(v);
+            }
+
+                function validateAll(){
+                const uOk = (username.value || '').trim().length > 0;
+                const eOk = simpleEmailOk(email.value || '');
+                    const showU = touched.username || submitted;
+                    const showE = touched.email || submitted;
+                    const showP = touched.password || submitted;
+                    const pOk = updateMeter(showP);
+
+                    username.classList.toggle('is-invalid', showU && !uOk);
+                    email.classList.toggle('is-invalid', showE && !eOk);
+                    password.classList.toggle('is-invalid', showP && !pOk);
+                submitBtn.disabled = !(uOk && eOk && pOk);
+                return uOk && eOk && pOk;
+            }
+
+                // Live updates on input without showing errors yet
+                username.addEventListener('input', validateAll);
+                email.addEventListener('input', validateAll);
+                password.addEventListener('input', validateAll);
+
+                // Mark fields as touched on blur, then revalidate to show errors
+                username.addEventListener('blur', () => { touched.username = true; validateAll(); });
+                email.addEventListener('blur', () => { touched.email = true; validateAll(); });
+                password.addEventListener('blur', () => { touched.password = true; validateAll(); });
+
+                form.addEventListener('submit', function(e){
+                    submitted = true;
+                    if (!validateAll()) {
+                    e.preventDefault();
+                        // focus first invalid field
+                        if ((username.value || '').trim().length === 0) {
+                            username.focus();
+                        } else if (!simpleEmailOk(email.value || '')) {
+                            email.focus();
+                        } else {
+                            password.focus();
+                        }
+                }
+            });
+
+            // init state
+                submitBtn && (submitBtn.disabled = true);
+                updateMeter(false);
+
+                // Toggle password visibility
+                const toggle = document.getElementById('togglePw');
+                if (toggle) {
+                    toggle.addEventListener('click', function(){
+                        const isPw = password.getAttribute('type') === 'password';
+                        password.setAttribute('type', isPw ? 'text' : 'password');
+                        const icon = this.querySelector('i');
+                        if (icon) {
+                            icon.classList.toggle('bi-eye');
+                            icon.classList.toggle('bi-eye-slash');
+                        }
+                        password.focus();
+                    });
+                }
+        })();
+        </script>
         {% endblock %}
         {% endblock %}

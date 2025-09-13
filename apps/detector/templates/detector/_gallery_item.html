@@ -1,0 +1,22 @@
+<article class="gallery-item" id="item-{{ item.id }}">
+  <img
+    src="{{ item.thumb_webp_url or url_for('detector.uploaded_file', filename=item.filename) }}"
+    alt="{{ item.alt or (item.original_filename or item.filename) }}"
+    loading="lazy"
+    {% if item.thumb2x_webp_url %}srcset="{{ item.thumb_webp_url }} 1x, {{ item.thumb2x_webp_url }} 2x"{% endif %}
+    sizes="(max-width: 600px) 50vw, 220px"
+  data-fallback="{{ item.thumb_fallback_jpg or url_for('detector.uploaded_file', filename=item.filename) }}"
+  onerror="this.onerror=null; this.src=this.getAttribute('data-fallback');">
+  <div class="p-3 d-flex justify-content-between align-items-center">
+    <span class="text-truncate" title="{{ item.original_filename or item.filename }}">{{ item.original_filename or item.filename }}</span>
+    <div class="d-flex gap-2">
+  <button class="btn btn-outline-danger btn-sm"
+      hx-delete="{{ url_for('detector.delete_image', image_id=item.id) }}"
+              hx-target="#item-{{ item.id }}"
+              hx-swap="outerHTML"
+      hx-headers='{"X-Requested-With":"XMLHttpRequest"}'
+      hx-on::after-request="if(event.detail.successful){window.showToast('削除しました','danger')}"
+              aria-label="削除">削除</button>
+    </div>
+  </div>
+</article>
