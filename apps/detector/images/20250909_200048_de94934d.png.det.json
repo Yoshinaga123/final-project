@@ -1,0 +1,38 @@
+{
+  "image_filename": "20250909_200048_de94934d.png",
+  "updated_at": "2025-09-09T11:00:49Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "dog",
+      "confidence": 0.72,
+      "bbox": {
+        "x": 157,
+        "y": 200,
+        "width": 147,
+        "height": 89
+      }
+    },
+    {
+      "class": "bird",
+      "confidence": 0.66,
+      "bbox": {
+        "x": 105,
+        "y": 174,
+        "width": 224,
+        "height": 105
+      }
+    },
+    {
+      "class": "bird",
+      "confidence": 0.77,
+      "bbox": {
+        "x": 143,
+        "y": 24,
+        "width": 239,
+        "height": 144
+      }
+    }
+  ],
+  "count": 3
+}

@@ -1,0 +1,38 @@
+{
+  "image_filename": "20250912_111753_0c42898a.jpg",
+  "updated_at": "2025-09-12T02:17:53Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "bicycle",
+      "confidence": 0.83,
+      "bbox": {
+        "x": 104,
+        "y": 196,
+        "width": 222,
+        "height": 249
+      }
+    },
+    {
+      "class": "bird",
+      "confidence": 0.89,
+      "bbox": {
+        "x": 48,
+        "y": 88,
+        "width": 172,
+        "height": 179
+      }
+    },
+    {
+      "class": "bird",
+      "confidence": 0.67,
+      "bbox": {
+        "x": 171,
+        "y": 76,
+        "width": 156,
+        "height": 227
+      }
+    }
+  ],
+  "count": 3
+}

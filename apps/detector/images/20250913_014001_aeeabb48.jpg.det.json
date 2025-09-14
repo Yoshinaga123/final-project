@@ -1,0 +1,28 @@
+{
+  "image_filename": "20250913_014001_aeeabb48.jpg",
+  "updated_at": "2025-09-12T16:42:54Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "bird",
+      "confidence": 0.87,
+      "bbox": {
+        "x": 52,
+        "y": 55,
+        "width": 115,
+        "height": 136
+      }
+    },
+    {
+      "class": "horse",
+      "confidence": 0.75,
+      "bbox": {
+        "x": 147,
+        "y": 151,
+        "width": 191,
+        "height": 153
+      }
+    }
+  ],
+  "count": 2
+}

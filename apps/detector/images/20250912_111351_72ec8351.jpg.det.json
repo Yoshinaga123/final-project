@@ -1,0 +1,18 @@
+{
+  "image_filename": "20250912_111351_72ec8351.jpg",
+  "updated_at": "2025-09-12T02:15:00Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "dog",
+      "confidence": 0.85,
+      "bbox": {
+        "x": 162,
+        "y": 88,
+        "width": 119,
+        "height": 235
+      }
+    }
+  ],
+  "count": 1
+}

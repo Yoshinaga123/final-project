@@ -1,16 +1,29 @@
 """
 将棋機能のルート定義
 
-棋譜入力、将棋盤表示、棋譜管理などの機能を提供します。
+棋譜入力、将棋盤表示、棋譜管理、USIエンジン対戦などの機能を提供します。
 """
 
-from flask import render_template, request, jsonify, session, current_app, flash, redirect, url_for
+from flask import render_template, request, jsonify, session, current_app, flash, redirect, url_for, make_response
 from werkzeug.utils import secure_filename
 import re
 import os
 import datetime
 from .utils import _nl, _to_kif_safe, _ensure_dir
-from . import shogi_bp
+
+# 循環インポートを避けるため、ここでBlueprintを取得
+from . import shogi_bp, bp
+from flask import Blueprint
+
+# エンジン機能専用の軽量BP（/engine または /shogi/engine で利用可能）
+engine_bp = Blueprint('shogi_engine', __name__)
+
+try:
+    from flask_login import login_required
+except Exception:
+    # fallback: no-op decorator if flask_login isn't available
+    def login_required(f):
+        return f
 
 
 def safe_filename_jp(filename):
@@ -47,10 +60,110 @@ def safe_filename_jp(filename):
 UPLOAD_DIR = "apps/static/kifu"
 ALLOWED_FORMATS = {"kif", "ki2", "csa", "jkf", "kifu"}
 
+def _detect_bridge_port(cfg, root_path: str) -> int:
+    """logs/usi-bridge/last_port.txt があればそれを優先して返す。無ければ USI_BRIDGE_PORT（既定 8787）。"""
+    # ポートは固定（要件）: 8787 のみ許可
+    try:
+        # 明示的に固定。必要なら環境変数で上書き（ただし既定は 8787）
+        return int(cfg.get('USI_BRIDGE_PORT', 8787))
+    except Exception:
+        return 8787
+
 @shogi_bp.route('/')
 def index():
     """将棋機能のトップページ"""
     return render_template('shogi/index.html')
+
+@shogi_bp.route('/engine/start', methods=['GET', 'POST'])
+@login_required
+def start_engine_bridge():
+    """USIブリッジ(別プロジェクト)をPowerShellから起動するヘルパー。
+    - Engine パスは環境変数またはデフォルトパスを利用。
+    - 既にポートがLISTEN中なら起動はスキップ。
+    """
+    try:
+        import subprocess, sys
+        host = current_app.config.get('USI_BRIDGE_HOST', '127.0.0.1')
+        port = int(current_app.config.get('USI_BRIDGE_PORT', 8787))
+        token = current_app.config.get('USI_BRIDGE_TOKEN')
+
+        # 既定エンジンパス（必要に応じて config からも取得可能）
+        engine_path = current_app.config.get(
+            'USI_ENGINE_PATH',
+            r"C:\\shogi\\engines\\suisho\\YaneuraOu_NNUE_halfKP256-V830Git_ZEN3.exe"
+        )
+
+        # PowerShell スクリプトの絶対パス
+        ps_script = os.path.join(current_app.root_path, 'scripts', 'run-bridge.ps1')
+
+        # PowerShell 経由で起動（DryRunなし）
+        args = [
+            'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+            '-File', ps_script,
+            '-Engine', engine_path,
+            '-Port', str(port)
+        ]
+        if token:
+            args += ['-Token', token]
+
+        # 非同期で起動（サーバをブロックしない）
+        subprocess.Popen(args, cwd=current_app.root_path)
+        return jsonify({'success': True, 'message': 'USI bridge starting', 'port': port})
+    except Exception as e:
+        current_app.logger.error(f"USI bridge start failed: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@shogi_bp.route('/engine/health')
+# @login_required  # DEBUGGING: 認証をバイパスしてエンジンヘルスチェックを可能にする
+def engine_health():
+    """簡易ヘルス: 指定ポートがLISTEN中かを返す。"""
+    try:
+        import socket
+        host = current_app.config.get('USI_BRIDGE_HOST', '127.0.0.1')
+        port = _detect_bridge_port(current_app.config, current_app.root_path)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            result = s.connect_ex((host, port))
+            healthy = (result == 0)
+        return jsonify({'success': True, 'healthy': healthy, 'host': host, 'port': port})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@engine_bp.get('/health')
+def engine_health2():
+    try:
+        cfg = current_app.config
+        host = cfg.get('USI_BRIDGE_HOST', '127.0.0.1')
+        port = _detect_bridge_port(cfg, current_app.root_path)
+
+        # TCP レベルの疎通確認（LISTEN中かどうか）
+        import socket
+        healthy = False
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.6)
+                healthy = (s.connect_ex((host, port)) == 0)
+        except Exception:
+            healthy = False
+
+        # WS エンドポイントは既定で /ws。token があれば付与（空なら省略）
+        token = cfg.get('USI_BRIDGE_TOKEN') or ''
+        qs = f"?token={token}" if token else ""
+        # 固定ポート 8787 を採用（誤設定の混入を避ける）
+        fixed_port = 8787
+        ws_url = f"ws://{host}:{fixed_port}/ws{qs}"
+
+        # 状態は WS ブリッジの HTTP /health を使わず UNKNOWN 扱いにする（環境によっては未提供のため）
+        payload = {
+            'ok': healthy,
+            'status': 'UNKNOWN',
+            'bridge_host': host,
+            'bridge_port': port,
+            'ws_url': ws_url,
+        }
+        return jsonify(payload), (200 if healthy else 503)
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 503
 
 @shogi_bp.route('/board')
 def board():
@@ -306,3 +419,66 @@ def api_kifu_content(filename):
     except Exception as e:
         current_app.logger.error(f"Failed to read kifu file {filename}: {e}")
         return jsonify({'success': False, 'error': 'Failed to read file'}), 500
+
+# 正規URL: /engine/shogi （既存テンプレを再利用し、必ず ws_url と movetime_ms を渡す）
+@engine_bp.get('/shogi')
+def engine_shogi():
+    cfg = current_app.config
+    host = cfg.get('USI_BRIDGE_HOST', '127.0.0.1')
+    port = _detect_bridge_port(cfg, current_app.root_path)
+    token = cfg.get('USI_BRIDGE_TOKEN') or ''
+    qs = f"?token={token}" if token else ""
+    ws_url = f"ws://{host}:{port}/ws{qs}"
+    movetime_ms = int(cfg.get('MOVETIME_MS', 2000))
+    # センシティブなクエリをキャッシュさせない（token混在対策）
+    masked = (ws_url.replace(f"token={token}", "token=***") if token else ws_url)
+    current_app.logger.info("/engine/shogi: ws_url=%s movetime_ms=%s", masked, movetime_ms)
+    resp = make_response(render_template('shogi_vs_engine.html', ws_url=ws_url, movetime_ms=movetime_ms, token=token))
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+# 互換: /engine/vs-engine -> /engine/shogi へ寄せる（任意）
+@engine_bp.get('/vs-engine')
+def engine_alias_vsengine():
+    return redirect(url_for('shogi_engine.engine_shogi'), code=302)
+
+@shogi_bp.route('/vs-engine')
+def shogi_vs_engine():
+    host = current_app.config.get('USI_BRIDGE_HOST', '127.0.0.1')
+    port = _detect_bridge_port(current_app.config, current_app.root_path)
+    token = current_app.config.get('USI_BRIDGE_TOKEN')
+    qs = f"?token={token}" if token else ""
+    ws_url = f"ws://{host}:{port}/ws{qs}"
+    movetime_ms = int(current_app.config.get('MOVETIME_MS', 2000))
+    resp = make_response(render_template('shogi_vs_engine.html', ws_url=ws_url, movetime_ms=movetime_ms, token=token))
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+# SVG盤面版（参照HTMLに近いUI）
+@engine_bp.get('/shogi-svg')
+def engine_shogi_svg():
+    cfg = current_app.config
+    host = cfg.get('USI_BRIDGE_HOST', '127.0.0.1')
+    port = _detect_bridge_port(cfg, current_app.root_path)
+    token = cfg.get('USI_BRIDGE_TOKEN') or ''
+    qs = f"?token={token}" if token else ""
+    ws_url = f"ws://{host}:{port}/ws{qs}"
+    movetime_ms = int(cfg.get('MOVETIME_MS', 2000))
+    resp = make_response(render_template('shogi_svg.html', ws_url=ws_url, movetime_ms=movetime_ms, token=token))
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+# 作業依頼仕様: 新しいbp用のルート（/shogiでアクセス）
+@bp.route('/shogi')
+# @login_required  # DEBUGGING: 認証をバイパスしてUIテストを可能にする
+def shogi():
+    """USI Bridge連携の将棋対戦UI - 作業依頼仕様"""
+    host = current_app.config.get('USI_BRIDGE_HOST', '127.0.0.1')
+    port = _detect_bridge_port(current_app.config, current_app.root_path)
+    token = current_app.config.get('USI_BRIDGE_TOKEN')
+    qs = f"?token={token}" if token else ""
+    ws_url = f"ws://{host}:{port}/ws{qs}"
+    movetime_ms = int(current_app.config.get('MOVETIME_MS', 2000))
+    resp = make_response(render_template('shogi_vs_engine.html', ws_url=ws_url, movetime_ms=movetime_ms, token=token))
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp

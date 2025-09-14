@@ -246,6 +246,35 @@ python run.py
 - 管理画面: http://127.0.0.1:5000/admin
 - ログイン: `demo_user` / `demo_password`
 
+## 将棋エンジン連携とブリッジ（Windows）
+
+PowerShell 補助スクリプトを用意しています（Windows）。
+
+- `scripts/run-bridge.ps1` … USIブリッジ起動（エンジンexeとポートを指定、`.env`も可）
+- `scripts/ws-smoke.ps1` … WebSocketブリッジのE2Eスモーク（bestmove/情報行/KIF生成を検証）
+- `scripts/setup-yaneuraou.ps1` … YaneuraOu 用の簡易セットアップ（フォルダ作成・環境変数）
+    - ブリッジ本体は `tools/usi-bridge.py` に移植済み（final-project内で完結）。
+    - 動作検証用のモックエンジンは `tools/mock_engine/` に同梱。
+
+使い方（例）:
+
+```powershell
+# 1) エンジンの配置（例: C:\shogi\engines\yaneuraou\YaneuraOu-avx2.exe）
+./scripts/setup-yaneuraou.ps1 -PersistEnv
+
+# 2) ブリッジ起動（空きポート自動）
+./scripts/run-bridge.ps1 -Engine "C:\shogi\engines\yaneuraou\YaneuraOu-avx2.exe" -Port 0
+
+# 3) スモークテスト（last_port.txt から自動検出）
+./scripts/ws-smoke.ps1
+```
+
+ブリッジのログは `logs/usi-bridge/` に出力され、選択ポートは `last_port.txt` へ書き出されます。
+
+移行メモ:
+- 旧 `shogi-engine-prototype/tools/usi-bridge.py` への依存は解消しました。`scripts/run-bridge.ps1` は final-project 配下の `tools/usi-bridge.py` のみを使用します（フォールバックは削除）。
+- 旧プロトタイプの削除前に、必要なら `.env` の `USI_ENGINE_PATH` など環境設定をご確認ください。
+
 ## 将棋機能の使い方
 
 ### 棋譜ファイルの配置

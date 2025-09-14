@@ -1,0 +1,28 @@
+{
+  "image_filename": "20250912_095743_9686f056.jpg",
+  "updated_at": "2025-09-12T00:57:43Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "bicycle",
+      "confidence": 0.83,
+      "bbox": {
+        "x": 125,
+        "y": 89,
+        "width": 101,
+        "height": 92
+      }
+    },
+    {
+      "class": "bird",
+      "confidence": 0.81,
+      "bbox": {
+        "x": 177,
+        "y": 57,
+        "width": 86,
+        "height": 209
+      }
+    }
+  ],
+  "count": 2
+}

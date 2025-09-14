@@ -94,6 +94,22 @@ def create_app(config_name=None):
     # エラーハンドラーの登録
     register_error_handlers(app)
     
+    # USIブリッジの自動起動（任意） - Flask 3.x 対応（before_first_request は廃止）
+    try:
+        if app.config.get('USI_AUTOSTART', False):
+            from apps.shogi.bridge_manager import ensure_bridge_running, stop_bridge
+            _auto_started = {'done': False}
+            @app.before_request
+            def _auto_bridge_once():
+                if not _auto_started['done']:
+                    state = ensure_bridge_running(app)
+                    app.logger.info(f"USI bridge state: {state}")
+                    _auto_started['done'] = True
+            import atexit
+            atexit.register(lambda: stop_bridge(app))
+    except Exception as e:
+        app.logger.error(f"USI auto-start setup failed: {e}")
+
     return app
 
 
@@ -103,7 +119,8 @@ def register_blueprints(app):
     from apps.admin import admin_bp
     from apps.crud import crud_bp
     from apps.contact import contact_bp
-    from apps.shogi import shogi_bp
+    from apps.shogi import shogi_bp, bp as shogi_usi_bp  # 新しいUSI Bridge Blueprint
+    from apps.shogi.routes import engine_bp
     from apps.detector import detector_bp
     
     # ルートをインポート（ブループリントのエンドポイントを登録するため）
@@ -119,13 +136,16 @@ def register_blueprints(app):
     app.register_blueprint(crud_bp, url_prefix='/crud')
     app.register_blueprint(contact_bp, url_prefix='/contact')
     app.register_blueprint(shogi_bp, url_prefix='/shogi')
+    app.register_blueprint(shogi_usi_bp, url_prefix='/engine')  # USI Bridge機能（UI）
+    app.register_blueprint(engine_bp, url_prefix='/engine')     # ヘルスなどの軽量API
     app.register_blueprint(detector_bp, url_prefix='/detector')
 
 
 def register_extensions(app):
     """拡張機能を初期化"""
-    # デバッグツールバー（開発環境のみ）
-    if app.debug:
+    # デバッグツールバー（明示有効化時のみ）。UIのjQueryと競合するため既定OFF
+    # 有効化する場合は環境変数 ENABLE_DEBUG_TOOLBAR=1 を設定
+    if app.debug and os.getenv('ENABLE_DEBUG_TOOLBAR') == '1':
         toolbar = DebugToolbarExtension(app)
         app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
     

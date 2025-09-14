@@ -14,9 +14,12 @@
                 const saved = raw ? JSON.parse(raw) : null;
                 const theme = (saved && saved.theme) ? saved.theme : 'light';
                 const html = document.documentElement;
-                const body = document.body;
-                html.className = html.className.replace(/theme-\w+/g, '');
-                body.className = body.className.replace(/theme-\w+/g, '');
+                const body = document.body; // body は head 実行時に未生成の可能性あり
+                // 既存のテーマクラスを除去
+                html.className = (html.className || '').replace(/theme-\w+/g, '');
+                if (body) {
+                    body.className = (body.className || '').replace(/theme-\w+/g, '');
+                }
                 let cls = 'theme-light';
                 if (theme === 'auto') {
                     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -25,10 +28,24 @@
                     cls = 'theme-dark';
                 }
                 html.classList.add(cls);
-                body.classList.add(cls);
+                if (body) {
+                    body.classList.add(cls);
+                } else {
+                    // body 未生成なら DOMContentLoaded 後に適用
+                    document.addEventListener('DOMContentLoaded', function once() {
+                        document.removeEventListener('DOMContentLoaded', once);
+                        try { document.body.classList.add(cls); } catch(_) {}
+                    });
+                }
             } catch(e) {
-                document.documentElement.classList.add('theme-light');
-                document.body.classList.add('theme-light');
+                try { document.documentElement.classList.add('theme-light'); } catch(_) {}
+                if (document.body) {
+                    try { document.body.classList.add('theme-light'); } catch(_) {}
+                } else {
+                    document.addEventListener('DOMContentLoaded', function () {
+                        try { document.body.classList.add('theme-light'); } catch(_) {}
+                    });
+                }
             }
         })();
     </script>
@@ -261,6 +278,7 @@
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="shogiDropdown">
                             <li><a class="dropdown-item" href="{{ url_for('shogi.index') }}">将棋機能</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('shogi_new.shogi') }}">エンジン対戦</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">

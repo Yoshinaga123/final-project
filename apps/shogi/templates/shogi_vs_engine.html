@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>将棋AI対局</title>
+    <script>
+      // 早期スタブ: 本体がまだ読み込まれていない段階でも安全に呼べるようにする
+      // ここはグローバルスコープで実行して、未定義参照を防止する
+      if (typeof hbGuardTimer === 'undefined') { var hbGuardTimer = null; }
+      if (typeof lastRxAt === 'undefined') { var lastRxAt = 0; }
+      (function(){
+        try {
+          if (!('tryApplyEngineMove' in window)) {
+            const Q = [];
+            window.__TRY_APPLY_ENGINE_MOVE_Q__ = Q;
+            window.tryApplyEngineMove = function(mv){
+              try { Q.push(mv); } catch (_) {}
+            };
+          }
+        } catch(_){}
+      })();
+    </script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .board-container { display: flex; gap: 20px; margin-top: 20px; }
+        .board-section { flex: 1; }
+        .game-area { display: flex; align-items: center; gap: 15px; }
+        .komadai { width: 120px; background: #F8F4E6; border: 2px solid #8B4513; border-radius: 8px; padding: 10px; font-family: 'MS Gothic', monospace; }
+        .komadai h4 { margin: 0 0 10px 0; text-align: center; font-size: 14px; background: #8B4513; color: white; padding: 5px; border-radius: 4px; }
+        .komadai-pieces { display: flex; flex-direction: column; gap: 5px; }
+        .komadai-piece { display: flex; justify-content: space-between; align-items: center; padding: 3px 5px; cursor: pointer; border-radius: 3px; transition: background-color 0.2s; min-width: 90px; box-sizing: border-box; }
+        .komadai-piece:hover { background: rgba(255, 255, 0, 0.3); }
+        .komadai-piece.selected { background: rgba(0, 255, 0, 0.5); }
+        .komadai-piece.disabled { color: #ccc; cursor: not-allowed; }
+        .komadai-piece.black-owner { color:#000; }
+        .komadai-piece.white-owner { color:#c00; }
+        .komadai-piece.captured-flash { animation: flash-capture 0.6s ease-in-out; }
+        @keyframes flash-capture { 0% { background: rgba(255,255,0,0.8);} 100% { background: transparent;} }
+        .piece-count { font-weight: bold; color: #8B4513; }
+        .komadai-piece.black-owner .piece-count { color:#000; }
+        .komadai-piece.white-owner .piece-count { color:#c00; }
+        .shogi-board-svg { width: 445px; height: 445px; border: 2px solid #8B4513; background: #F4E4BC; cursor: pointer; font-family: 'MS Gothic', monospace; transition: opacity 0.3s; }
+        .shogi-board-svg.thinking { opacity: 0.5; pointer-events: none; cursor: not-allowed; }
+        .shogi-board-svg.disabled { opacity: 0.45; pointer-events: none; cursor: not-allowed; }
+        .turn-indicator { text-align: center; margin: 10px 0; padding: 8px; border-radius: 4px; font-weight: bold; transition: all 0.3s; }
+        .turn-indicator.black { background: #d4edda; color: #155724; }
+        .turn-indicator.white { background: #f8d7da; color: #721c24; }
+        .turn-indicator.thinking { background: #fff3cd; color: #856404; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
+        .square { fill: transparent; stroke: none; cursor: pointer; transition: fill 0.2s; }
+        .square:hover { fill: rgba(255, 255, 0, 0.3); }
+        .square.selected { fill: rgba(0, 255, 0, 0.5); }
+        .square.possible { fill: rgba(0, 0, 255, 0.2); }
+        .piece-text { font-size: 18px; font-weight: bold; text-anchor: middle; alignment-baseline: middle; pointer-events: none; user-select: none; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .primary { background: #007acc; color: white; }
+        .secondary { background: #6c757d; color: white; }
+        .success { background: #28a745; color: white; }
+        .warning { background: #ffc107; color: black; }
+        .danger { background: #dc3545; color: white; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; font-weight: bold; }
+        .status.connected { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 15px; height: 300px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: none; border-radius: 8px; width: 300px; text-align: center; }
+        .modal-buttons { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+  <h1>水匠 v830 Git + YaneuraOu NNUE</h1>
+    <h3>世界コンピュータ将棋選手権 第35回（2025年） - 優勝</h3>
+    
+    <div class="controls">
+        <button class="success" onclick="newGame()">対局開始</button>
+        <button id="btn-resign" class="secondary">投了</button>
+        <button class="warning" onclick="generateKIF()">KIF生成</button>
+        <button class="danger" onclick="clearLog()">ログクリア</button>
+    </div>
+  <div id="status" class="status info">自動接続中...</div>
+    <div class="board-container">
+        <div class="board-section">
+            <div class="game-area">
+                <div class="komadai" id="komadai-white">
+                    <h4>後手 駒台</h4>
+                    <div class="komadai-pieces" id="white-pieces">
+                        <div class="komadai-piece" data-piece="p" onclick="selectDropPiece('p')"><span>歩</span><span class="piece-count" id="white-p">0</span></div>
+                        <div class="komadai-piece" data-piece="l" onclick="selectDropPiece('l')"><span>香</span><span class="piece-count" id="white-l">0</span></div>
+                        <div class="komadai-piece" data-piece="n" onclick="selectDropPiece('n')"><span>桂</span><span class="piece-count" id="white-n">0</span></div>
+                        <div class="komadai-piece" data-piece="s" onclick="selectDropPiece('s')"><span>銀</span><span class="piece-count" id="white-s">0</span></div>
+                        <div class="komadai-piece" data-piece="g" onclick="selectDropPiece('g')"><span>金</span><span class="piece-count" id="white-g">0</span></div>
+                        <div class="komadai-piece" data-piece="b" onclick="selectDropPiece('b')"><span>角</span><span class="piece-count" id="white-b">0</span></div>
+                        <div class="komadai-piece" data-piece="r" onclick="selectDropPiece('r')"><span>飛</span><span class="piece-count" id="white-r">0</span></div>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div id="turn-indicator" class="turn-indicator black">あなたの手番</div>
+                    <svg id="shogi-board" class="shogi-board-svg" viewBox="0 0 445 445"></svg>
+                    <div style="margin-top: 10px; font-size: 12px; color: #666;">クリック操作：移動元→移動先 / 駒台→盤面（打ち手）</div>
+                </div>
+                <div class="komadai" id="komadai-black">
+                    <h4>先手 駒台</h4>
+                    <div class="komadai-pieces" id="black-pieces">
+                        <div class="komadai-piece" data-piece="P" onclick="selectDropPiece('P')"><span>歩</span><span class="piece-count" id="black-P">0</span></div>
+                        <div class="komadai-piece" data-piece="L" onclick="selectDropPiece('L')"><span>香</span><span class="piece-count" id="black-L">0</span></div>
+                        <div class="komadai-piece" data-piece="N" onclick="selectDropPiece('N')"><span>桂</span><span class="piece-count" id="black-N">0</span></div>
+                        <div class="komadai-piece" data-piece="S" onclick="selectDropPiece('S')"><span>銀</span><span class="piece-count" id="black-S">0</span></div>
+                        <div class="komadai-piece" data-piece="G" onclick="selectDropPiece('G')"><span>金</span><span class="piece-count" id="black-G">0</span></div>
+                        <div class="komadai-piece" data-piece="B" onclick="selectDropPiece('B')"><span>角</span><span class="piece-count" id="black-B">0</span></div>
+                        <div class="komadai-piece" data-piece="R" onclick="selectDropPiece('R')"><span>飛</span><span class="piece-count" id="black-R">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="board-section">
+            <h3>📨 通信ログ & ゲーム状態</h3>
+            <div id="log" class="log">自動接続を開始...\n</div>
+        </div>
+    </div>
+</div>
+
+<div id="promotionModal" class="modal">
+    <div class="modal-content">
+        <h3>成りますか？</h3>
+        <p id="promotionText"></p>
+        <div class="modal-buttons">
+            <button class="success" onclick="confirmMove(true)">成る</button>
+            <button class="secondary" onclick="confirmMove(false)">成らない</button>
+        </div>
+    </div>
+    </div>
+
+  <script id="shogi-config" type="application/json">{
+    "ws_url": {{ ws_url|tojson|safe }},
+    "movetime_ms": {{ movetime_ms|tojson|safe }},
+    "token": {{ token|tojson|safe }}
+  }</script>
+  <script>
+    (function(){
+      try{ var __cfg = JSON.parse(document.getElementById('shogi-config').textContent);
+        window.ENGINE_CONFIG = { ws_url: __cfg.ws_url, movetime_ms: (__cfg.movetime_ms||2000) }; }
+      catch(e){ console.warn('ENGINE_CONFIG inject failed', e); window.ENGINE_CONFIG = { ws_url: null, movetime_ms: 2000 }; }
+    })();
+  </script>
+
+  <!-- Simple Bridge for reliable WebSocket connection -->
+  <script src="{{ url_for('static', filename='engine/simple-bridge.js') }}?v=20250914" defer></script>
+  <!-- USI info 解析ユーティリティ（ブラウザ用） -->
+  <script src="{{ url_for('static', filename='js/info-parser.js') }}?v=20250913a" defer></script>
+  <!-- KifuForJS連携（最小） -->
+  <script src="{{ url_for('static', filename='js/kifu-integration.js') }}?v=20250914b" defer></script>
+  <script>
+// Feature flag: 共有アダプタ利用（必要なら false で旧実装へ）
+window.USE_BRIDGE_ADAPTER = true;
+window.BRIDGE_AUTOCONNECT = true; // ページ読込で自動接続
+function isAdapter(){ return !!(window.USE_BRIDGE_ADAPTER && window.Bridge && typeof window.Bridge.isConnected === 'function'); }
+function isConnected(){ return isAdapter()? window.Bridge.isConnected() : (!!ws && ws.readyState===WebSocket.OPEN); }
+function sendObj(obj){ if(isAdapter()){ try{ window.Bridge.send(obj); }catch(e){} } else { try{ ws && ws.send(JSON.stringify(obj)); }catch(e){} } }
+
+// 以降は参照HTMLのロジックそのまま（WS接続先のみ ENGINE_CONFIG を優先）
+  </script>
+
+<script>
+let ws = null;
+let gameState = null;
+let selectedSquare = null;
+let selectedDropPiece = null;
+let pendingMove = null;
+let hasControl = false;
+let gameReady = false;
+let thinking = false;
+let lastLocalMove = null;
+let legalTargets = new Set();
+let gameInterrupted = false;
+let lastBoardSnapshot = null;
+let lastHandsSnapshot = null;
+let queuedMove = null; // 対局未開始/制御権未取得時に一手をキュー
+// エンジンbestmoveの重複適用防止（engine生ログ/イベントの両経路で統一）
+let lastEngineApplied = null; // 最後に適用したエンジン手の {move, ply} 複合キー
+let currentGamePly = 0; // 現在の手数（humanMove・bestmove両方でカウント）
+
+const CELL_SIZE = 45;
+const BOARD_SIZE = CELL_SIZE * 9;
+const LABEL_MARGIN = 20;
+const BOARD_OFFSET_X = LABEL_MARGIN;
+const BOARD_OFFSET_Y = LABEL_MARGIN;
+let svgBoardInitialized = false;
+
+window.addEventListener('DOMContentLoaded', () => {
+  // 自動開始の二重防止フラグ
+  window.__AUTO_STARTED__ = false;
+  const btnResign = document.getElementById('btn-resign');
+  if (btnResign) {
+    btnResign.addEventListener('click', () => {
+      if (!hasControl) { log('⛔ 制御権がありません'); return; }
+      if (!gameReady) { log('⛔ 対局中ではありません'); return; }
+      if (!isConnected()) { log('⛔ 未接続'); return; }
+      gameReady = false; gameInterrupted = true; setBoardEnabled(false);
+      sendObj({type:'gameResign'});
+      log('🙇 投了を申告しました（サーバ反映待ち）');
+    });
+  }
+  if (isAdapter()){
+    try{
+      window.Bridge.connect();
+      window.Bridge.on('open', ()=>{
+        updateStatus('水匠に接続しました', 'connected');
+        hasControl=true; setBoardEnabled(true);
+        try{ sendObj({type:'takeControl'}); }catch(e){}
+  // 既存挙動: 接続直後に一度だけ自動で対局開始（AI自動着手はサーバ側でmovetimeにより発火）
+  if (!window.__AUTO_STARTED__) { window.__AUTO_STARTED__ = true; try { newGame(); } catch(e) { log('auto newGame failed: '+e); } }
+      });
+  const fwd=(d)=>{ try{ handleMessage(d); }catch(e){} };
+      window.Bridge.on('engine', fwd);
+      window.Bridge.on('game', fwd);
+  window.Bridge.on('state', (st)=>{ try{ handleMessage({ type:'state', ...st }); }catch(e){} });
+  window.Bridge.on('engineMove', (mv)=>{ try{
+        // 通信ログにbestmoveのUSIも明記
+        try { log(`🔍 Bridge engineMove: ${mv}, lastEngineApplied=${JSON.stringify(lastEngineApplied)}`); } catch(_){ }
+        // フロント受信テスト用（DevTools Consoleでも確認可能）
+        if (typeof window !== 'undefined') {
+          window.debugLastEngineMove = mv;
+          window.debugGamePly = currentGamePly;
+        }
+        handleMessage({ type:'game', event:'bestmove', move: mv, lastMove: mv, state: gameState });
+      }catch(e){} });
+      window.Bridge.on('error', fwd);
+      window.Bridge.on('parsed', fwd);
+      window.Bridge.on('message', fwd);
+      window.Bridge.on('close', ()=>{
+        updateStatus('接続が切断されました', 'error');
+        hasControl=false; gameReady=false; lastLocalMove=null; thinking=false; setBoardEnabled(false);
+      });
+      // 既に接続済み（openを取り逃した）場合のフォロー
+      if (window.Bridge.isConnected && window.Bridge.isConnected()) {
+        if (!window.__AUTO_STARTED__) { window.__AUTO_STARTED__ = true; try { newGame(); } catch(e) { log('auto newGame (late) failed: '+e); } }
+      }
+    }catch(e){ log('🧩 Bridge 初期化失敗: '+e); }
+  }
+});
+
+function markThinking(v){ 
+  thinking = v; 
+  setBoardEnabled(!v && hasControl && gameReady);
+  
+  const ind = document.getElementById('turn-indicator'); 
+  if (!ind) return;
+  if (v) ind.textContent = '水匠思考中...';
+  else if (gameState) { 
+    const cur = gameState.current_player || gameState.currentPlayer; 
+    ind.textContent = (cur==='b')?'先手の手番':'後手の手番'; 
+  } else {
+    ind.textContent = '準備中';
+  }
+}
+
+let boardState = [];
+function createStartpos(){ return [ ['l','n','s','g','k','g','s','n','l'], [null,'r',null,null,null,null,null,'b',null], ['p','p','p','p','p','p','p','p','p'], [null,null,null,null,null,null,null,null,null], [null,null,null,null,null,null,null,null,null], [null,null,null,null,null,null,null,null,null], ['P','P','P','P','P','P','P','P','P'], [null,'B',null,null,null,null,null,'R',null], ['L','N','S','G','K','G','S','N','L'] ]; }
+function usiSqToXY(sq){ const file=parseInt(sq[0],10); const rank=sq.charCodeAt(1)-97; const x=9-file; const y=rank; return {x,y}; }
+const pieceNames={ 'P':'歩','L':'香','N':'桂','S':'銀','G':'金','B':'角','R':'飛','K':'玉', 'p':'歩','l':'香','n':'桂','s':'銀','g':'金','b':'角','r':'飛','k':'王', '+P':'と','+L':'杏','+N':'圭','+S':'全','+B':'馬','+R':'龍' };
+
+function setPieceOrientation(textEl, pieceCode){ if(!textEl||!pieceCode) return; const base=pieceCode.replace('+',''); const x=parseFloat(textEl.getAttribute('x'))||0; const y=parseFloat(textEl.getAttribute('y'))||0; if (base===base.toLowerCase()) textEl.setAttribute('transform',`rotate(180 ${x} ${y})`); else textEl.removeAttribute('transform'); }
+
+let blackHand={P:0,L:0,N:0,S:0,B:0,R:0,G:0}; let whiteHand={p:0,l:0,n:0,s:0,b:0,r:0,g:0};
+function resetHands(){ for(const k in blackHand) blackHand[k]=0; for(const k in whiteHand) whiteHand[k]=0; updateKomadaiDisplay(); }
+function updateKomadaiDisplay(){ for(const k in blackHand){ const el=document.getElementById(`black-${k}`); if(!el) continue; el.textContent=blackHand[k]; const row=el.closest('.komadai-piece'); if(!row) continue; row.classList.remove('black-owner','white-owner'); if(blackHand[k]>0) row.classList.add('black-owner'); } for(const k in whiteHand){ const el=document.getElementById(`white-${k}`); if(!el) continue; el.textContent=whiteHand[k]; const row=el.closest('.komadai-piece'); if(!row) continue; row.classList.remove('black-owner','white-owner'); if(whiteHand[k]>0) row.classList.add('white-owner'); } }
+
+function addCaptureToHand(capturedPiece){ if(!capturedPiece) return; let base=capturedPiece.replace('+',''); if (capturedPiece===capturedPiece.toUpperCase()){ base=base.toLowerCase(); if(whiteHand[base]!==undefined) whiteHand[base]++; } else { base=base.toUpperCase(); if(blackHand[base]!==undefined) blackHand[base]++; } updateKomadaiDisplay(); let highlightId=null; if (capturedPiece===capturedPiece.toUpperCase()) highlightId='white-'+base; else highlightId='black-'+base.toUpperCase(); const countEl=document.getElementById(highlightId); if(countEl){ const row=countEl.closest('.komadai-piece'); if(row){ row.classList.remove('captured-flash'); void row.offsetWidth; row.classList.add('captured-flash'); setTimeout(()=>row.classList.remove('captured-flash'),700); } } }
+
+function useHandPieceForDrop(usiPiece, sideOverride){ const side=sideOverride||(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; if (side==='b'){ if (blackHand[usiPiece]>0) blackHand[usiPiece]--; } else { const lower=usiPiece.toLowerCase(); if (whiteHand[lower]>0) whiteHand[lower]--; } updateKomadaiDisplay(); }
+
+function initSVGBoard(){ if (svgBoardInitialized) return; const svg=document.getElementById('shogi-board'); if(!svg){ console.error('SVG要素が見つかりません!'); return; } svg.innerHTML=''; svg.setAttribute('viewBox', `0 0 ${BOARD_SIZE+LABEL_MARGIN*2} ${BOARD_SIZE+LABEL_MARGIN*2}`);
+  const fileLabels=['９','８','７','６','５','４','３','２','１']; const rankLabels=['一','二','三','四','五','六','七','八','九'];
+  for(let i=0;i<9;i++){ const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',BOARD_OFFSET_X+i*CELL_SIZE+CELL_SIZE/2); t.setAttribute('y',BOARD_OFFSET_Y-6); t.setAttribute('text-anchor','middle'); t.setAttribute('font-size','14'); t.setAttribute('font-weight','bold'); t.setAttribute('fill','#8B4513'); t.textContent=fileLabels[i]; svg.appendChild(t);} 
+  for(let i=0;i<9;i++){ const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',BOARD_OFFSET_X+BOARD_SIZE+6); t.setAttribute('y',BOARD_OFFSET_Y+i*CELL_SIZE+28); t.setAttribute('text-anchor','start'); t.setAttribute('font-size','14'); t.setAttribute('font-weight','bold'); t.setAttribute('fill','#8B4513'); t.textContent=rankLabels[i]; svg.appendChild(t);} 
+  for(let i=0;i<=9;i++){ const v=document.createElementNS('http://www.w3.org/2000/svg','line'); v.setAttribute('x1',BOARD_OFFSET_X+i*CELL_SIZE); v.setAttribute('y1',BOARD_OFFSET_Y); v.setAttribute('x2',BOARD_OFFSET_X+i*CELL_SIZE); v.setAttribute('y2',BOARD_OFFSET_Y+BOARD_SIZE); v.setAttribute('stroke','#8B4513'); v.setAttribute('stroke-width','1'); svg.appendChild(v); const h=document.createElementNS('http://www.w3.org/2000/svg','line'); h.setAttribute('x1',BOARD_OFFSET_X); h.setAttribute('y1',BOARD_OFFSET_Y+i*CELL_SIZE); h.setAttribute('x2',BOARD_OFFSET_X+BOARD_SIZE); h.setAttribute('y2',BOARD_OFFSET_Y+i*CELL_SIZE); h.setAttribute('stroke','#8B4513'); h.setAttribute('stroke-width','1'); svg.appendChild(h);} 
+  const initialBoard=[ ['l','n','s','g','k','g','s','n','l'], [null,'r',null,null,null,null,null,'b',null], ['p','p','p','p','p','p','p','p','p'], [null,null,null,null,null,null,null,null,null], [null,null,null,null,null,null,null,null,null], [null,null,null,null,null,null,null,null,null], ['P','P','P','P','P','P','P','P','P'], [null,'B',null,null,null,null,null,'R',null], ['L','N','S','G','K','G','S','N','L'] ];
+  for(let rank=0;rank<9;rank++){ for(let file=0;file<9;file++){ const square=document.createElementNS('http://www.w3.org/2000/svg','rect'); square.setAttribute('x',BOARD_OFFSET_X+file*CELL_SIZE+1); square.setAttribute('y',BOARD_OFFSET_Y+rank*CELL_SIZE+1); square.setAttribute('width',CELL_SIZE-2); square.setAttribute('height',CELL_SIZE-2); square.classList.add('square'); square.setAttribute('data-file',file); square.setAttribute('data-rank',rank); square.onclick=()=>onSquareClick(file,rank); svg.appendChild(square);
+    const piece=initialBoard[rank][file]; if(piece){ const text=document.createElementNS('http://www.w3.org/2000/svg','text'); const xPos=BOARD_OFFSET_X+file*CELL_SIZE+CELL_SIZE/2; const yPos=BOARD_OFFSET_Y+rank*CELL_SIZE+CELL_SIZE/2; text.setAttribute('x',xPos); text.setAttribute('y',yPos); text.setAttribute('text-anchor','middle'); text.setAttribute('alignment-baseline','middle'); text.setAttribute('font-size','18'); text.setAttribute('font-weight','bold'); text.classList.add('piece-text'); text.setAttribute('data-file',file); text.setAttribute('data-rank',rank); text.setAttribute('id',`piece-${file}-${rank}`); text.setAttribute('data-piece',piece); text.textContent=pieceNames[piece]||piece; text.style.fill=piece===piece.toUpperCase()?'#000':'#c00'; setPieceOrientation(text,piece); svg.appendChild(text);} } }
+  const squares=document.querySelectorAll('.square'); log(`🎯 盤面初期化完了: ${squares.length}マス生成`); svgBoardInitialized=true; }
+
+function selectDropPiece(pieceType){ if(thinking) return; const countEl=document.getElementById(pieceType.toLowerCase()===pieceType?'white-'+pieceType:'black-'+pieceType); const count=parseInt(countEl.textContent)||0; if(count===0){ toast('持ち駒がありません', false); return; } clearSelection(); selectedDropPiece=pieceType; const pieceEl=document.querySelector(`[data-piece="${pieceType}"]`); if (pieceEl) pieceEl.classList.add('selected'); log(`駒台選択: ${pieceNames[pieceType]||pieceType}`); }
+
+function onSquareClick(file,rank){ if (thinking) return; if (gameInterrupted){ toast('対局は中断されています', false); return; } if(!gameReady) return; const squareSelector=`[data-file="${file}"][data-rank="${rank}"]`; const square=document.querySelector('.square'+squareSelector); const pieceText=document.querySelector('.piece-text'+squareSelector);
+  if (selectedDropPiece){ const to=`${9-file}${String.fromCharCode(97+rank)}`; const usiMove=`${selectedDropPiece.toUpperCase()}*${to}`; log(`打ち手: ${(pieceNames[selectedDropPiece]||selectedDropPiece)}*${to} (${usiMove})`); sendHumanMove(usiMove); clearSelection(); return; }
+  if (selectedSquare===null){ const piece = pieceText ? pieceText.textContent : ''; if (piece && piece.trim()){ selectedSquare={file,rank,square,piece}; square.classList.add('selected'); log(`選択: ${9-file}${String.fromCharCode(97+rank)} (${piece})`); } }
+  else { const fromFile=selectedSquare.file; const fromRank=selectedSquare.rank; selectedSquare.square.classList.remove('selected'); if (fromFile===file && fromRank===rank){ selectedSquare=null; return; } const from=`${9-fromFile}${String.fromCharCode(97+fromRank)}`; const to=`${9-file}${String.fromCharCode(97+rank)}`; const usiMove=from+to; log(`移動: ${from} → ${to} (${usiMove})`); const piece=selectedSquare.piece; const canPromote=checkPromotion(piece, fromRank, rank); if (canPromote){ pendingMove={usi:usiMove, promote:usiMove+'+', piece, from, to}; document.getElementById('promotionText').textContent = `${piece} を ${from} から ${to} へ移動`; document.getElementById('promotionModal').style.display='block'; } else { sendHumanMove(usiMove); } selectedSquare=null; }
+}
+
+function checkPromotion(piece, fromRank, toRank){ if (!piece || piece.startsWith('+')||piece.includes('と')||piece.includes('杏')||piece.includes('圭')||piece.includes('全')||piece.includes('馬')||piece.includes('龍')) return false; const isBlack = ['歩','香','桂','銀','角','飛'].includes(piece); const isWhite = isBlack; let promotableZone=false; if (isBlack) promotableZone = toRank<=2 || fromRank<=2; else promotableZone = toRank>=6 || fromRank>=6; const canPromotePieces=['歩','香','桂','銀','角','飛']; return promotableZone && canPromotePieces.includes(piece); }
+
+function confirmMove(promote){ document.getElementById('promotionModal').style.display='none'; if (pendingMove){ const move = promote ? pendingMove.promote : pendingMove.usi; sendHumanMove(move); pendingMove=null; } }
+
+function setBoardEnabled(enabled){ const board=document.getElementById('shogi-board'); if(!board) return; board.classList.toggle('disabled', !enabled); }
+
+const ZEN=['０','１','２','３','４','５','６','７','８','９']; const RANK_JP={ a:'一', b:'二', c:'三', d:'四', e:'五', f:'六', g:'七', h:'八', i:'九' };
+const PIECE_JP={ P:['歩','と'], L:['香','成香'], N:['桂','成桂'], S:['銀','成銀'], G:['金','金'], B:['角','馬'], R:['飛','龍'], K:['玉','玉'] };
+let lastToSq=null; function fw(n){ return ZEN[Number(n)]||String(n); }
+function sqToJP(sq){ if(!sq||sq.length<2) return '？'; const file=fw(sq[0]); const rank=RANK_JP[sq[1]]; return (file||'？')+(rank||'？'); }
+function pieceNameJP(piece){ if(!piece) return '？'; const p=PIECE_JP[piece.type?.toUpperCase()]; return p ? p[piece.promoted?1:0] : '？'; }
+function pieceAtKIF(sq){ const p=pieceAtUSI(sq); if(!p) return null; const promoted=p.raw.startsWith('+'); return { type:p.pt, promoted } }
+// usiToKif: USI をKIF風に整形（「同」対応、打/成）
+function usiToKif(usi, side, pieceAt = pieceAtKIF, useDou = true){
+  const turnMark = side === 'b' ? '▲' : '△';
+  if (usi.includes('*')){
+    const [p,_] = usi.split('*');
+    const to = usi.slice(2,4);
+    const name = PIECE_JP[p.toUpperCase()]?.[0] || '？';
+    const dst  = sqToJP(to); // 打は常に座標
+    if (useDou) lastToSq = to;
+    return `${turnMark}${dst}${name}打`;
+  }
+  const promote = usi.endsWith('+');
+  const core = promote ? usi.slice(0,-1) : usi;
+  const from = core.slice(0,2);
+  const to   = core.slice(2,4);
+  const mover = pieceAt(from);
+  const name  = pieceNameJP(mover);
+  const dst   = (useDou && to === lastToSq) ? '同　' : sqToJP(to);
+  if (useDou) lastToSq = to;
+  return `${turnMark}${dst}${name}${promote ? '成' : ''}`;
+}
+const kifMoves=[]; function pushKif(usi, side){ try{ kifMoves.push(usiToKif(usi, side, pieceAtKIF)); }catch{} }
+function exportKI2(){ return kifMoves.join(' '); } function exportKIF(){ return kifMoves.map((m,i)=> `${String(i+1).padStart(3,' ')} ${m}`).join('\n'); }
+
+function cloneBoardState(){ try{ return boardState.map(row=>row.slice()); }catch{ return createStartpos(); } }
+function pieceAtFromBoard(board, sq){ const {x,y}=usiSqToXY(sq); const code=board[y]&&board[y][x]; if(!code) return null; const promoted=String(code).startsWith('+'); const base=String(code).replace('+',''); const pt=base.toUpperCase(); return { type:pt, promoted } }
+function applyMoveToBoardSim(board, usi, side){ try { if (usi.includes('*')){ const letter=usi[0]; const targetSq=usi.slice(2,4); const {x,y}=usiSqToXY(targetSq); const place = side==='b' ? letter.toUpperCase() : letter.toLowerCase(); board[y][x]=place; return true; } else { const fromSq=usi.slice(0,2); const toSq=usi.slice(2,4); const promote=usi.endsWith('+'); const from=usiSqToXY(fromSq); const to=usiSqToXY(toSq); let piece=board[from.y][from.x]; if(!piece) return false; if (promote) piece = '+'+String(piece).replace('+',''); board[to.y][to.x]=piece; board[from.y][from.x]=null; return true; } } catch { return false; } }
+function formatNps(n){ if(typeof n!=='number') return ''; if(n>=1_000_000) return (n/1_000_000).toFixed(1).replace(/\.0$/,'')+'M'; if(n>=1_000) return (n/1_000).toFixed(1).replace(/\.0$/,'')+'K'; return String(n); }
+function formatScore(type,val){ if(!type) return ''; if(type==='cp') return (val>=0?'+':'')+val; if(type==='mate') return '#'+val; return `${type}:${val}`; }
+
+const RANK_NUM={ a:1,b:2,c:3,d:4,e:5,f:6,g:7,h:8,i:9 }; const CSA_PIECE={ P:'FU', L:'KY', N:'KE', S:'GI', G:'KI', B:'KA', R:'HI', K:'OU' }; const CSA_PROMOTED={ P:'TO', L:'NY', N:'NK', S:'NG', B:'UM', R:'RY' };
+function usiSqToCSA(sq){ if(!sq||sq.length<2) return '00'; const f=sq[0]; const r=sq[1]; return `${f}${RANK_NUM[r]||'?'}`; }
+function pieceToCSA(piece){ if(!piece) return '??'; const base=CSA_PIECE[piece.type?.toUpperCase()]||'??'; if(piece.promoted) return CSA_PROMOTED[piece.type?.toUpperCase()]||base; return base; }
+function usiToCSA(usi, side, board){ if (usi.includes('*')){ const pt=usi[0].toUpperCase(); const to=usi.slice(2,4); const piece={ type:pt, promoted:false }; return `00${usiSqToCSA(to)}${pieceToCSA(piece)}`; } const core=usi.endsWith('+')?usi.slice(0,-1):usi; const from=core.slice(0,2); const to=core.slice(2,4); const mover=pieceAtFromBoard(board, from) || {type:'P',promoted:false}; const piece={ type:mover.type, promoted:(mover.promoted || usi.endsWith('+')) }; return `${usiSqToCSA(from)}${usiSqToCSA(to)}${pieceToCSA(piece)}`; }
+
+function advantageLabel(cp){ if(cp==null) return ''; if(cp>0) return '先手有利'; if(cp<0) return '後手有利'; return '互角'; }
+function cpAdvantageLabel(cp, sideToMove){ if(cp==null) return ''; const asSente=(sideToMove==='b')?cp:-cp; return advantageLabel(asSente); }
+function buildJKFJsonFromInfo(raw){ const tokens=raw.trim().split(/\s+/); let depth=null,nps=null,scoreType=null,scoreVal=null,pvMoves=[],timeMs=null; for(let i=1;i<tokens.length;i++){ const t=tokens[i]; if(t==='depth'&&tokens[i+1]){ depth=parseInt(tokens[++i],10);} else if(t==='nps'&&tokens[i+1]){ nps=parseInt(tokens[++i],10);} else if(t==='score'&&tokens[i+2]){ scoreType=tokens[++i]; scoreVal=parseInt(tokens[++i],10);} else if(t==='time'&&tokens[i+1]){ timeMs=parseInt(tokens[++i],10);} else if(t==='pv'){ pvMoves=tokens.slice(i+1); break; } } const sideToMove=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; const sim=cloneBoardState(); const pvKif=[]; let side=sideToMove; for(const mv of pvMoves){ try{ const kif=usiToKif(mv, side, (sq)=>pieceAtFromBoard(sim, sq), false); pvKif.push(kif); applyMoveToBoardSim(sim, mv, side); side=(side==='b')?'w':'b'; }catch{} } const firstMove=pvMoves[0]; let moveCSA=undefined; if(firstMove){ try{ moveCSA=usiToCSA(firstMove, sideToMove, cloneBoardState()); }catch{} } const secs=(timeMs!=null)?Math.max(0, Math.round(timeMs/100)/10):null; const cmts=[]; cmts.push('【水匠思考ログ】'); if(scoreType==='cp'&&typeof scoreVal==='number') cmts.push(`評価値: ${-scoreVal} (${advantageLabel(-scoreVal)})`); if(scoreType==='mate'&&typeof scoreVal==='number') cmts.push(`詰み: #${scoreVal}`); if(depth!=null) cmts.push(`読み筋の深さ: ${depth}手`); if(secs!=null) cmts.push(`思考時間: ${secs.toFixed(1)}秒`); if(pvKif.length) cmts.push(`読み筋: ${pvKif.join(' ')}${pvMoves.length>10?' ...':''}`); const timeObj = secs!=null ? { now: { m: Math.floor(secs/60), s: Math.round(secs%60) } } : undefined; return { move: moveCSA, comments: cmts, time: timeObj } }
+
+function parseUSI(usi){ if(!usi) return null; if(usi.includes('*')){ const [pt,_]=usi.split('*'); const to=usi.slice(2,4); return {drop:true, pt:pt.toUpperCase(), from:null, to, promote:false}; } const from=usi.slice(0,2); const to=usi.slice(2,4); const promote=usi.length===5&&usi.endsWith('+'); return {drop:false, pt:null, from, to, promote}; }
+function sqToXYSimple(sq){ const f='123456789'.indexOf(sq[0]); const r='abcdefghi'.indexOf(sq[1]); return {x:8-f, y:r}; }
+function pieceAtUSI(sq){ const {x,y}=usiSqToXY(sq); const code=boardState[y]&&boardState[y][x]; if(!code) return null; const side=(code===code.toUpperCase())?'b':'w'; const base=code.replace('+','').toUpperCase(); return {side, pt:base, raw:code}; }
+function isOwnPieceOn(sq, side){ const p=pieceAtUSI(sq); return p && p.side===side; }
+function isSlidingPiece(pt){ return ['B','R','L'].includes(pt); }
+function delta(from,to){ const a=sqToXYSimple(from), b=sqToXYSimple(to); return {dx:b.x-a.x, dy:b.y-a.y}; }
+function pathIsClear(from,to){ const {dx,dy}=delta(from,to); const steps=Math.max(Math.abs(dx),Math.abs(dy)); if(steps<=1) return true; const sx=dx===0?0:dx/Math.abs(dx); const sy=dy===0?0:dy/Math.abs(dy); let {x,y}=sqToXYSimple(from); for(let i=1;i<steps;i++){ x+=sx; y+=sy; if(boardState[y][x]) return false; } return true; }
+function basicMoveConforms(pt, from, to, side){ const {dx,dy}=delta(from,to); const fwd=(side==='b')?-1:1; const adx=Math.abs(dx), ady=Math.abs(dy); switch(pt){ case 'P': return dx===0&&dy===fwd; case 'L': return dx===0&&((fwd===-1&&dy<0)||(fwd===1&&dy>0)); case 'N': return adx===1&&dy===2*fwd; case 'S': return (dy===fwd&&adx<=1)||(dy===-fwd&&adx===1); case 'G': case 'K': { if(pt==='K') return adx<=1&&ady<=1; if(dy===fwd&&adx<=1) return true; if(dy===0&&adx===1) return true; if(dy===-fwd&&dx===0) return true; return false; } case 'B': return adx===ady; case 'R': return (dx===0||dy===0); case '+B': return adx===ady||(adx<=1&&ady<=1); case '+R': return (dx===0||dy===0)||(adx===1&&ady===1); case '+P': case '+L': case '+N': case '+S': return basicMoveConforms('G', from, to, side); default: return true; } }
+function canPromote(pt, from, to, side){ if(!['P','L','N','S','B','R'].includes(pt)) return false; const fr=sqToXYSimple(from).y; const tr=sqToXYSimple(to).y; const zone=side==='b'?[0,1,2]:[6,7,8]; return zone.includes(fr)||zone.includes(tr); }
+function hasPawnOnFile(side, fileChar){ const file=parseInt(fileChar,10); for(let rank=0;rank<9;rank++){ const sq=`${file}${String.fromCharCode(97+rank)}`; const p=pieceAtUSI(sq); if(p && p.side===side && p.pt==='P' && !p.raw.startsWith('+')) return true; } return false; }
+function isLegalQuick(usi, opts){ const ignoreSession = !!(opts && opts.ignoreSession); const mv=parseUSI(usi); if(!mv) return false; if(!ignoreSession && (!hasControl||!gameReady||thinking)) return false; const side=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; if(mv.drop){ const pt=mv.pt; const handObj=(side==='b')?blackHand:whiteHand; if(!handObj[pt]||handObj[pt]<=0) return false; if(isOwnPieceOn(mv.to, side)) return false; if(pt==='P'){ if(hasPawnOnFile(side, mv.to[0])) return false; const y=sqToXYSimple(mv.to).y; if(side==='b'&&y===0) return false; if(side==='w'&&y===8) return false; } if(pt==='L'){ const y=sqToXYSimple(mv.to).y; if((side==='b'&&y===0)||(side==='w'&&y===8)) return false; } if(pt==='N'){ const y=sqToXYSimple(mv.to).y; if((side==='b'&&y<=1)||(side==='w'&&y>=7)) return false; } return true; } else { const fromP=pieceAtUSI(mv.from); if(!fromP) return false; if(fromP.side!==side) return false; if(isOwnPieceOn(mv.to, side)) return false; const basePt=fromP.raw.startsWith('+')?('+'+fromP.pt):fromP.pt; if(!basicMoveConforms(basePt, mv.from, mv.to, side)) return false; if(isSlidingPiece(basePt.replace('+',''))){ if(!pathIsClear(mv.from, mv.to)) return false; } if(mv.promote && !canPromote(fromP.pt, mv.from, mv.to, side)) return false; return true; } }
+
+function sendHumanMove(usi){
+  if(gameInterrupted){ log('⛔ 対局中断中: 指し手無効'); return; }
+  // 共有アダプタ使用時は、未接続や未開始でも Bridge 側が接続・gameNew・go を面倒見る
+  if (isAdapter()) {
+    const moverSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b';
+    try{ lastBoardSnapshot=boardState.map(r=>r.slice()); lastHandsSnapshot={black:{...blackHand}, white:{...whiteHand}}; }catch{}
+  // アダプタ経路でもクライアント側で合法手を弾く（セッション状態ガードは無効化）
+  if(!isLegalQuick(usi, {ignoreSession:true})){ log(`⛔ 非合法(クライアント弾き): ${usi}`); return; }
+    if(!applyMoveToBoard(usi, {side:moverSide, optimistic:true})){ log('💥 反映失敗（USI?）'); return; }
+    try{ const kifTxtHuman=usiToKif(usi, moverSide, pieceAtKIF); log(`♟️ ${kifTxtHuman}`); pushKif(usi, moverSide); }catch{}
+    lastLocalMove=usi;
+    const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000;
+    try { 
+      // Bridge-adapterの humanMove は既に movetime_ms を含んでいるが、確実にするため明示的に指定
+      if (window.Bridge && typeof window.Bridge.humanMoveWithTime === 'function') {
+        window.Bridge.humanMoveWithTime(usi, MOVETIME_MS);
+      } else {
+        window.Bridge.humanMove(usi); 
+      }
+    } catch(_) {}
+    log(`📡 送信: humanMove ${usi} (movetime=${MOVETIME_MS}ms)`);
+    currentGamePly++; // 人間手もカウント
+    lastEngineApplied = null; // 人間の手を打った後は次のbestmoveを確実に受け入れる
+    log(`🔄 humanMove送信後: lastEngineApplied=null, ply=${currentGamePly}`);
+    markThinking(true);
+    return;
+  }
+  // 旧WS経路は従来のガードを適用
+  if(!isConnected()){ log('⛔ 未接続'); return; }
+  if(!hasControl){ log('⛔ 制御権なし → takeControl'); sendObj({type:'takeControl'}); queuedMove = usi; return; }
+  if(!gameReady){ log('⛔ 対局未開始 → gameNew'); sendObj({type:'gameNew', position:'startpos', engineStarts: false}); queuedMove = usi; return; }
+  if(thinking){ log('⏳ 思考中は入力不可'); return; }
+  if(!isLegalQuick(usi)){ log(`⛔ 非合法(クライアント弾き): ${usi}`); return; }
+  const moverSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b';
+  lastBoardSnapshot=boardState.map(r=>r.slice()); lastHandsSnapshot={black:{...blackHand}, white:{...whiteHand}};
+  if(!applyMoveToBoard(usi, {side:moverSide, optimistic:true})){ log('💥 反映失敗（USI?）'); return; }
+  const kifTxtHuman=usiToKif(usi, moverSide, pieceAtKIF); log(`♟️ ${kifTxtHuman}`); pushKif(usi, moverSide); lastLocalMove=usi;
+  const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000;
+  // go送信はサーバ側で自動実行されるため、クライアント側では送信しない（二重送信防止）
+  // sendObj({type:'humanMove', move:usi}); const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000; sendObj({type:'send', line:`go movetime ${MOVETIME_MS}`}); log(`⚙️ go movetime ${MOVETIME_MS}`);
+  sendObj({type:'humanMove', move:usi, movetime_ms:MOVETIME_MS}); // サーバ側でgoを自動送信
+  log(`📡 送信: humanMove ${usi}`);
+  currentGamePly++; // 人間手もカウント
+  lastEngineApplied = null; // 人間の手を打った後は次のbestmoveを確実に受け入れる
+  log(`🔄 humanMove送信後(旧WS): lastEngineApplied=null, ply=${currentGamePly}`);
+  markThinking(true);
+  // 応答が来ない場合のフェイルセーフ: 短い待機の後に go movetime を送る（旧WS経路のみ）
+  try { if (goFallbackTimer) { clearTimeout(goFallbackTimer); goFallbackTimer = null; } } catch(_) {}
+  goFallbackTimer = setTimeout(() => {
+    try {
+      if (!isAdapter() && isConnected()) {
+        const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000;
+        sendObj({type:'send', line:`go movetime ${MOVETIME_MS}`});
+        log(`⚙️ Fallback go movetime ${MOVETIME_MS}`);
+      }
+    } catch(_) {}
+  }, 1200);
+}
+
+function flushQueuedMove(){ if(!queuedMove) return; if(!isConnected()) return; if(!hasControl||!gameReady) return; if(thinking) return; const usi = queuedMove; queuedMove = null; const moverSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; lastBoardSnapshot=boardState.map(r=>r.slice()); lastHandsSnapshot={black:{...blackHand}, white:{...whiteHand}}; if(!isLegalQuick(usi)){ log(`⛔ 非合法(キュー破棄): ${usi}`); return; } if(!applyMoveToBoard(usi, {side:moverSide, optimistic:true})){ log('💥 反映失敗（USI?）'); return; } const kifTxt=usiToKif(usi, moverSide, pieceAtKIF); log(`♟️ ${kifTxt}`); pushKif(usi, moverSide); lastLocalMove=usi; if (isAdapter()) { try { window.Bridge.humanMove(usi); } catch(_) {} } else { sendObj({type:'humanMove', move:usi}); 
+  // go送信はサーバ側で自動実行されるため、クライアント側では送信しない（二重送信防止）
+  // const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000; sendObj({type:'send', line:`go movetime ${MOVETIME_MS}`}); log(`⚙️ go movetime ${MOVETIME_MS}`); 
+} log(`📡 送信: humanMove ${usi}`); markThinking(true); }
+
+function wsURL(){
+  const cfg = (window.ENGINE_CONFIG||{});
+  if (cfg.ws_url) return cfg.ws_url; // Flask から注入（/ws を含む）
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  // 旧WS直結フォールバック時も 8787 に統一
+  return 'ws://127.0.0.1:8787/ws' + (token ? ('?token='+encodeURIComponent(token)) : '');
+}
+
+function connect(){ if(isAdapter()) return; try { const url=wsURL(); log(`🔌 接続開始: ${url}`); ws=new WebSocket(url);
+  ws.onopen=function(){ updateStatus('水匠に接続しました', 'connected'); log('✅ WebSocket接続成功'); reconnectAttempts=0; if(reconnectTimer){ clearTimeout(reconnectTimer); reconnectTimer=null; } startHeartbeat(); ws.send(JSON.stringify({type:'takeControl'})); log('📝 takeControl 要求送信'); hasControl=true; setBoardEnabled(true); try{ ws.send(JSON.stringify({type:'getState'})); }catch(e){} 
+    // 接続直後に一度だけ自動で対局を開始
+    if (!window.__AUTO_STARTED__) { window.__AUTO_STARTED__ = true; try { newGame(); } catch(e) { log('auto newGame failed: '+e); } }
+  };
+  ws.onmessage=function(ev){ const data=JSON.parse(ev.data); handleMessage(data); };
+  ws.onclose=function(ev){ updateStatus('接続が切断されました', 'error'); log(`❌ WebSocket切断 code=${ev.code} reason=${ev.reason||'(none)'} url=${ws.url}`); stopHeartbeat(); hasControl=false; gameReady=false; lastLocalMove=null; thinking=false; setBoardEnabled(false); scheduleReconnect(); };
+  ws.onerror=function(error){ updateStatus('接続エラーが発生しました', 'error'); log('💥 WebSocketエラー: '+error+` url=${ws.url}`); };
+} catch (e){ updateStatus('接続に失敗しました: '+e, 'error'); log('💥 接続失敗: '+e); } }
+
+let reconnectAttempts=0; let reconnectTimer=null; function scheduleReconnect(){ if(reconnectTimer) return; const delay=Math.min(10000, 1500*Math.pow(2, reconnectAttempts)); reconnectAttempts=Math.min(reconnectAttempts+1, 6); log(`⏳ 再接続をスケジュール: ${delay}ms`); reconnectTimer=setTimeout(()=>{ reconnectTimer=null; connect(); }, delay); }
+let hbTimer=null; function startHeartbeat(){
+  if(isAdapter()) return; // アダプタ使用時はサーバのプロトコル ping に任せる
+  stopHeartbeat();
+  hbTimer=setInterval(()=>{
+    if(!ws||ws.readyState!==WebSocket.OPEN) return;
+    try{ ws.send(JSON.stringify({type:'getState'})); }catch(e){}
+  }, 15000);
+}
+function stopHeartbeat(){ if(hbTimer){ clearInterval(hbTimer); hbTimer=null; } }
+
+// 旧WS経路のみで使う go フェイルセーフ用タイマ
+let goFallbackTimer = null;
+
+window.addEventListener('DOMContentLoaded', ()=>{ if(!isAdapter()) connect(); });
+
+// 互換: レガシー呼び出し向けの最終適用関数を公開
+try {
+  window.tryApplyEngineMove = function(mv){
+    try {
+      // 既存の bestmove ハンドラに流し込む
+      handleMessage({ type: 'game', event: 'bestmove', move: mv, lastMove: mv, state: gameState });
+    } catch(e) {
+      if (console && console.warn) console.warn('tryApplyEngineMove failed:', e);
+    }
+  };
+  // 初期化後、スタブで溜めた呼び出しをドレイン
+  try {
+    const q = window.__TRY_APPLY_ENGINE_MOVE_Q__;
+    if (Array.isArray(q) && q.length) {
+      while(q.length){
+        const mv = q.shift();
+        try { window.tryApplyEngineMove(mv); } catch(_){}
+      }
+    }
+  } catch(_){ }
+} catch(_) {}
+
+function disconnect(){ log('ℹ️ 手動切断は無効化されています'); }
+function newGame(){
+  if(!isConnected()){ updateStatus('水匠に接続してください', 'error'); return; }
+  gameInterrupted=false; setBoardEnabled(true);
+  // 楽観的にUIを更新（サーバからのnew/state到着で上書きされます）
+  gameState = { moves: [], current_player: 'b' };
+  gameReady = true; markThinking(false);
+  // デデュープ用の適用済みbestmoveをリセット
+  lastEngineApplied = null;
+  currentGamePly = 0; // 手数リセット
+  log(`🔄 newGame: lastEngineApplied=null, ply=${currentGamePly}`);
+  // 盤・持ち駒・KIF を即座に初期化
+  try{ resetHands(); }catch(e){}
+  try{ resetToStartpos(); }catch(e){}
+  try{ if (Array.isArray(kifMoves)) kifMoves.length = 0; lastToSq = null; }catch(e){}
+  const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000;
+  // 既存仕様: movetime を添えて送信 → サーバ側で position 直後に go を自動送信
+  const payload={ type:'gameNew', gameId:'svg-click-game-'+Date.now(), position:'startpos', movetime: MOVETIME_MS, engineStarts: false };
+  sendObj(payload);
+  try{ sendObj({type:'takeControl'}); }catch(e){}
+  try{ sendObj({type:'getState'}); }catch(e){}
+  log('🎮 新規ゲーム開始リクエスト送信');
+}
+function generateKIF(){ if(!isConnected()){ updateStatus('水匠に接続してください', 'error'); return; } if(!gameState||!gameState.moves||gameState.moves.length===0){ toast('対局データがありません（0手）', false); return; } const gameInfo={ black_player:'人間', white_player:'YaneuraOu NNUE', date:new Date().toISOString().split('T')[0], event:'SVGクリック入力テスト対局' }; const requestId='kif-req-'+Date.now(); sendObj({type:'generateKIF', moves:gameState.moves, gameInfo, requestId}); log('📋 KIF生成リクエスト送信: '+gameState.moves.length+'手'); updateStatus('KIF生成中...', 'info'); }
+
+function handleMessage(data){ lastRxAt=Date.now(); if(hbGuardTimer){ clearTimeout(hbGuardTimer); hbGuardTimer=null; } if (goFallbackTimer) { try{ clearTimeout(goFallbackTimer); }catch{} goFallbackTimer = null; } switch(data.type){ case 'engine': { const raw=data.output||data.line||''; if(!raw) break; if(raw.startsWith('info')){ const tokens=raw.split(/\s+/); let depth=null,nps=null,scoreType=null,scoreVal=null,pvMoves=[]; for(let i=1;i<tokens.length;i++){ const t=tokens[i]; if(t==='depth'&&tokens[i+1]) depth=parseInt(tokens[++i],10); else if(t==='nps'&&tokens[i+1]) nps=parseInt(tokens[++i],10); else if(t==='score'&&tokens[i+2]) { scoreType=tokens[++i]; scoreVal=parseInt(tokens[++i],10);} else if(t==='pv'){ pvMoves=tokens.slice(i+1); break; } } const sideToMove=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; const sim=cloneBoardState(); const pvKif=[]; let side=sideToMove; for(const mv of pvMoves){ try{ const kif=usiToKif(mv, side, (sq)=>pieceAtFromBoard(sim, sq), false); pvKif.push(kif); applyMoveToBoardSim(sim, mv, side); side=(side==='b')?'w':'b'; }catch{} } const parts=[]; if(depth!=null) parts.push(`d${depth}`); const dispScore=(scoreType==='cp'&&typeof scoreVal==='number') ? -scoreVal : scoreVal; if(scoreType) parts.push(`eval ${formatScore(scoreType, dispScore)}`); if(nps!=null) parts.push(`NPS ${formatNps(nps)}`); const head=parts.length?`🧠 ${parts.join(' | ')}`:'🧠'; const tail=pvKif.length?` | PV: ${pvKif.join(' ')}`:''; log(head+tail); try{ const jkf=buildJKFJsonFromInfo(raw); if(jkf && (jkf.move || (jkf.comments&&jkf.comments.length))){ log('JKF: '+JSON.stringify(jkf)); } }catch{} return; } if(raw.startsWith('bestmove')){ const m=raw.match(/bestmove\s+(\S+)/); const mv=m&&m[1]; if(mv && mv!=='resign' && mv!=='win'){ const sideToMove=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; const sim=cloneBoardState(); const kif=usiToKif(mv, sideToMove, (sq)=>pieceAtFromBoard(sim, sq), false); log(`🤖 候補手: ${kif}`);
+        // Fallback: イベント不達時でも盤面を進める（重複防止無効化）
+        // デバッグログ追加
+        log(`🔍 bestmove fallback: mv=${mv}, lastEngineApplied=${lastEngineApplied}, same=${lastEngineApplied === mv}`);
+        // 重複チェックを一時的に無効化
+        // if (lastEngineApplied !== mv) {
+          try {
+            const nextSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b';
+            const moverSide= nextSide==='b' ? 'w' : 'b';
+            const simBefore=cloneBoardState();
+            const kifTxt=usiToKif(mv, moverSide, (sq)=>pieceAtFromBoard(simBefore, sq), true);
+            applyMoveToBoard(mv, {authoritative:true, side:moverSide});
+            log(`🤖 ${kifTxt} (fallback処理)`);
+            pushKif(mv, moverSide);
+          } catch(_) {}
+          lastEngineApplied = mv;
+          lastLocalMove = null;
+          markThinking(false);
+        // } else {
+        //   log(`🤖 bestmove重複スキップ: ${mv}`);
+        // }
+      } else { log(`🤖 候補手: ${mv || raw}`); } return; } log('🗒️ '+raw); return; }
+  case 'pong': return;
+  case 'state': try{ restoreFromState(data); }catch(e){ log('restoreFromState失敗: '+e);} return;
+  case 'game': if(data.status==='GAME_OVER'){ markThinking(false); gameReady=false; gameInterrupted=true; setBoardEnabled(false); const reason=(data.result && data.result.reason)||''; const engineWon=(data.result&&(data.result.winner==='engine'||data.result.result==='engine-win')) || reason==='resign'; const who=engineWon?'水匠':'あなた'; const msg=`🏁 終局: ${reason} / 勝者: ${who}`; log(msg); try{ toast(msg, true);}catch{} return; } if(data.event==='new'){ gameState=data.state||{moves:[], current_player:'b'}; hasControl=true; gameReady=true; thinking=false; lastLocalMove=null; lastEngineApplied=null; log('🎮 新規ゲーム開始'); resetHands(); resetToStartpos(); if (gameState.moves&&gameState.moves.length) replayMoves(gameState.moves); setBoardEnabled(hasControl); markThinking(false); flushQueuedMove(); } else if (data.event==='state'){ gameState=data.state||gameState||{moves:[], current_player:'b'}; lastEngineApplied=null; resetHands(); resetToStartpos(); if (gameState.moves&&gameState.moves.length) replayMoves(gameState.moves); gameReady=true; setBoardEnabled(hasControl); markThinking(false); log(`♻️ 状態復元: ${gameState.moves.length||0}手`); flushQueuedMove(); } else if (data.event==='humanMove' || data.event==='human' || data.event==='move'){ gameState=data.state||gameState; const mv=data.lastMove||data.move||data.usi; if(!mv) return; if(mv!==lastLocalMove){ const nextSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; const moverSide= nextSide==='b' ? 'w' : 'b'; const simBefore=cloneBoardState(); const kifTxt=usiToKif(mv, moverSide, (sq)=>pieceAtFromBoard(simBefore, sq), true); applyMoveToBoard(mv, {authoritative:true, side:moverSide}); log(`♟️ ${kifTxt}`); pushKif(mv, moverSide); } } else if (data.event==='bestmove'){ 
+    try { if (goFallbackTimer) { clearTimeout(goFallbackTimer); goFallbackTimer = null; } } catch(_) {}
+    log(`🔍 bestmove event received: mv=${data.lastMove||data.move}, lastEngineApplied=${JSON.stringify(lastEngineApplied)}`);
+    gameState=data.state||gameState; 
+    let mv=data.lastMove||data.move; 
+    // bestmove正規化：空文字・resign・win除去、有効性チェック
+    if (typeof mv === "string" && mv.trim()) {
+      mv = mv.trim();
+      if (mv === "resign" || mv === "win") mv = null;
+    } else {
+      mv = null;
+    }
+    if(mv){ 
+      currentGamePly++; // エンジン手もカウント
+      const moveKey = {move: mv, ply: currentGamePly};
+      
+      // 重複チェック：同じ手かつ同じ手数なら適用済み
+      if (lastEngineApplied && lastEngineApplied.move === mv && lastEngineApplied.ply === currentGamePly) {
+        log(`🤖 bestmove重複スキップ: ${mv} (ply=${currentGamePly})`);
+        return;
+      }
+      
+      // 重複チェックを一時的に無効化してテスト
+      const nextSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; 
+      const moverSide= nextSide==='b' ? 'w' : 'b'; 
+      const simBefore=cloneBoardState(); 
+      const kifTxt=usiToKif(mv, moverSide, (sq)=>pieceAtFromBoard(simBefore, sq), true); 
+      applyMoveToBoard(mv, {authoritative:true, side:moverSide}); 
+      log(`🤖 ${kifTxt} (ply=${currentGamePly})`); 
+      pushKif(mv, moverSide); 
+      lastEngineApplied = moveKey; // 適用成功後に記録
+    } else { 
+      log('🤖 bestmove無効またはresign/win'); 
+    } 
+    lastLocalMove=null; 
+    markThinking(false); 
+} break;
+  case 'error': log(`💥 エラー [${data.code}]: ${data.message}`); updateStatus(`エラー: ${data.code}`, 'error'); if(data.code==='NOT_CONTROLLER'){ hasControl=false; setBoardEnabled(false); log('⚠ NOT_CONTROLLER → 再要求'); try{ sendObj({type:'takeControl'}); }catch(e){} 
+    // 楽観的に制御権を立ててフラッシュ（サーバ側で拒否される場合は再度NOT_CONTROLLERが返る）
+    hasControl=true; setBoardEnabled(true); try{ flushQueuedMove(); }catch(e){}
+  } if(data.code==='ILLEGAL_MOVE'||data.code==='PARSE_ERROR'){ log('🏳️ 不正手検出 → 投了扱いで対局終了'); lastBoardSnapshot=null; lastHandsSnapshot=null; lastLocalMove=null; markThinking(false); gameInterrupted=true; setBoardEnabled(false); toast(`不正な指し手 (${data.message||data.move||''}) により投了扱い`, false); clearSelection(); const ind=document.getElementById('turn-indicator'); if(ind) ind.textContent='対局終了 (不正手による投了)'; } break;
+  case 'parsed': { const d=(typeof data.depth==='number')?data.depth:(typeof data['depth(深さ)']==='number'?data['depth(深さ)']:undefined); const st=data.scoreType; const sv=data.scoreValue; const n=(typeof data.nps==='number')?data.nps:(typeof data['nps(探索局面数)']==='number'?data['nps(探索局面数)']:undefined); const parts=[]; if(typeof d==='number') parts.push(`深さ ${d}`); if(st==='cp'&&typeof sv==='number'){ const disp=-sv; const sign=disp>=0?`+${disp}`:`${disp}`; parts.push(`評価 ${sign}（${advantageLabel(disp)}）`); } else if(st==='mate'&&typeof sv==='number'){ parts.push(`詰み #${sv}`); } if(typeof n==='number') parts.push(`探索局面数 NPS ${formatNps(n)}`); if(parts.length) log('🧮 '+parts.join(' | ')); else log('🧮 解析: '+JSON.stringify(data)); return; }
+  default: log('📨 受信: '+JSON.stringify(data, null, 2)); }
+}
+
+function restoreFromState(snap){ if(!snap) return; const moves=snap.moves||[]; const side=snap.side_to_move||'b'; gameState={ moves:moves.slice(), current_player: side }; resetHands(); resetToStartpos(); if(moves.length) replayMoves(moves); gameReady=!!snap.in_game || moves.length>0; setBoardEnabled(hasControl); markThinking(false); log(`♻️ 状態復元(state): ${moves.length}手 / 手番=${side}`); }
+
+function applyMoveToBoard(usi, opts={}){ if(!usi) return false; const optimistic=!!opts.optimistic; log(`🔄 盤面反映: ${usi}${optimistic?' (optimistic)':''}`); try{ if(usi.includes('*')){ const letter=usi[0]; const targetSq=usi.slice(2,4); const {x,y}=usiSqToXY(targetSq); if(boardState[y][x]){ log('⚠️ 打ち先に駒があります: '+targetSq); return false; } const sideDetected=opts.side || (gameState&&(gameState.current_player||gameState.currentPlayer)) || 'b'; const piecePlaced= sideDetected==='b' ? letter.toUpperCase() : letter.toLowerCase(); boardState[y][x]=piecePlaced; useHandPieceForDrop(letter, sideDetected); const pieceText=document.getElementById(`piece-${x}-${y}`); if(pieceText){ pieceText.textContent=pieceNames[piecePlaced]||piecePlaced; pieceText.style.fill= piecePlaced===piecePlaced.toUpperCase()? '#000':'#c00'; pieceText.setAttribute('data-piece', piecePlaced); setPieceOrientation(pieceText, piecePlaced); } else { const svg=document.getElementById('shogi-board'); const text=document.createElementNS('http://www.w3.org/2000/svg','text'); text.setAttribute('x', BOARD_OFFSET_X + x * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('y', BOARD_OFFSET_Y + y * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('text-anchor','middle'); text.setAttribute('alignment-baseline','middle'); text.setAttribute('font-size','18'); text.setAttribute('font-weight','bold'); text.classList.add('piece-text'); text.setAttribute('data-file', x); text.setAttribute('data-rank', y); text.setAttribute('id', `piece-${x}-${y}`); text.setAttribute('data-piece', piecePlaced); text.textContent=pieceNames[piecePlaced]||piecePlaced; text.style.fill= piecePlaced===piecePlaced.toUpperCase()? '#000':'#c00'; setPieceOrientation(text, piecePlaced); svg.appendChild(text); } } else { const fromSq=usi.slice(0,2); const toSq=usi.slice(2,4); const promote=usi.endsWith('+'); const from=usiSqToXY(fromSq); const to=usiSqToXY(toSq); let piece=boardState[from.y][from.x]; if(!piece){ log(`⚠️ 移動元が空: ${fromSq}`); return false; } let captured=boardState[to.y][to.x]; if(promote){ piece='+'+piece.replace('+',''); } boardState[to.y][to.x]=piece; boardState[from.y][from.x]=null; const fromPieceText=document.getElementById(`piece-${from.x}-${from.y}`); if(fromPieceText) fromPieceText.remove(); const toPieceText=document.getElementById(`piece-${to.x}-${to.y}`); if(captured){ addCaptureToHand(captured); }
+    if(toPieceText){ toPieceText.textContent=pieceNames[piece]||piece; toPieceText.style.fill= piece.toLowerCase()===piece? '#c00':'#000'; toPieceText.setAttribute('data-piece', piece); setPieceOrientation(toPieceText, piece); } else { const svg=document.getElementById('shogi-board'); const text=document.createElementNS('http://www.w3.org/2000/svg','text'); text.setAttribute('x', BOARD_OFFSET_X + to.x * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('y', BOARD_OFFSET_Y + to.y * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('text-anchor','middle'); text.setAttribute('alignment-baseline','middle'); text.setAttribute('font-size','18'); text.setAttribute('font-weight','bold'); text.classList.add('piece-text'); text.setAttribute('data-file', to.x); text.setAttribute('data-rank', to.y); text.setAttribute('id', `piece-${to.x}-${to.y}`); text.setAttribute('data-piece', piece); text.textContent=pieceNames[piece]||piece; text.style.fill= piece.toLowerCase()===piece? '#c00':'#000'; setPieceOrientation(text, piece); svg.appendChild(text); }
+  } return true; } catch(e){ log(`💥 applyMoveToBoard失敗: ${e}`); return false; } }
+
+function resetToStartpos(){ boardState=createStartpos(); document.querySelectorAll('.piece-text').forEach(el=>el.remove()); const svg=document.getElementById('shogi-board'); for(let rank=0;rank<9;rank++){ for(let file=0;file<9;file++){ const piece=boardState[rank][file]; if(piece){ const text=document.createElementNS('http://www.w3.org/2000/svg','text'); text.setAttribute('x', BOARD_OFFSET_X + file * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('y', BOARD_OFFSET_Y + rank * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('text-anchor','middle'); text.setAttribute('alignment-baseline','middle'); text.setAttribute('font-size','18'); text.setAttribute('font-weight','bold'); text.classList.add('piece-text'); text.setAttribute('data-file', file); text.setAttribute('data-rank', rank); text.setAttribute('id', `piece-${file}-${rank}`); text.textContent=pieceNames[piece]||piece; text.style.fill= piece===piece.toUpperCase()? '#000':'#c00'; setPieceOrientation(text, piece); svg.appendChild(text); } } } log('🔄 盤面リセット完了'); }
+function replayMoves(moves){ if(!moves||moves.length===0) return; log(`🔄 手順再生: ${moves.length}手`); moves.forEach((mv,i)=>{ log(`  ${i+1}手目: ${mv}`); applyMoveToBoard(mv); }); }
+function displayKIF(kifContent){ const w=window.open('', '_blank', 'width=600,height=400'); w.document.write(`<html><head><title>生成されたKIF</title></head><body style="font-family: monospace; white-space: pre; padding: 20px;">${kifContent}</body></html>`); }
+function updateStatus(message,type){ const el=document.getElementById('status'); el.textContent=message; el.className='status '+type; }
+function log(message){ const el=document.getElementById('log'); const ts=new Date().toLocaleTimeString(); el.textContent += '['+ts+'] '+message+'\n'; el.scrollTop=el.scrollHeight; }
+function clearLog(){ document.getElementById('log').textContent='ログクリア...\n'; }
+function toast(message,isSuccess=true){ const sEl=document.getElementById('status'); const orig=sEl.textContent; const cls=sEl.className; updateStatus(message, isSuccess?'connected':'error'); setTimeout(()=>{ sEl.textContent=orig; sEl.className=cls; }, 3000); }
+function clearSelection(){ if(selectedSquare){ selectedSquare.square.classList.remove('selected'); selectedSquare=null; } if(selectedDropPiece){ const pieceEl=document.querySelector(`[data-piece="${selectedDropPiece}"].selected`); if(pieceEl) pieceEl.classList.remove('selected'); selectedDropPiece=null; } document.querySelectorAll('.square.possible').forEach(sq=>sq.classList.remove('possible')); legalTargets.clear(); }
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ clearSelection(); document.getElementById('promotionModal').style.display='none'; if(pendingMove){ log('成り選択キャンセル'); pendingMove=null; } } });
+window.onload=function(){ boardState=createStartpos(); initSVGBoard(); updateKomadaiDisplay(); log('🎌 SVG将棋盤クリック入力システム起動（駒台対応）'); updateStatus('自動接続中...', 'info'); };
+</script>
+</body>
+</html>

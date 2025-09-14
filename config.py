@@ -45,6 +45,19 @@ class Config:
     DEBUG = True
     TEMPLATES_AUTO_RELOAD = True
     DEBUG_TB_INTERCEPT_REDIRECTS = False
+    
+    # USI Bridge設定（作業依頼: 案A サイドカー統合）
+    USI_BRIDGE_HOST = os.environ.get('USI_BRIDGE_HOST', '127.0.0.1')
+    USI_BRIDGE_PORT = int(os.environ.get('USI_BRIDGE_PORT', '8787'))
+    USI_BRIDGE_TOKEN = os.environ.get('USI_BRIDGE_TOKEN')  # optional
+    # MOVETIME_MS を正とし、旧 USI_MOVETIME_MS があれば後方互換で吸収
+    MOVETIME_MS = int(os.environ.get('MOVETIME_MS', os.environ.get('USI_MOVETIME_MS', '2000')))
+    # ブリッジ起動連動の追加設定
+    USI_ENGINE_PATH = os.environ.get('USI_ENGINE_PATH', '')
+    PYTHON_EXE = os.environ.get('PYTHON_EXE', 'python')
+    USI_BRIDGE_SCRIPT = os.environ.get('USI_BRIDGE_SCRIPT', 'usi-bridge.py')
+    USI_BRIDGE_PS1 = os.environ.get('USI_BRIDGE_PS1', '')  # 既定は scripts/run-bridge.ps1
+    USI_AUTOSTART = os.environ.get('USI_AUTOSTART', 'true').lower() in ['1','true','on','yes']
 
 # BaseConfigクラス（エイリアス）
 BaseConfig = Config

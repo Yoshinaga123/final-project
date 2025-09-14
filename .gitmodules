@@ -1,0 +1,3 @@
+[submodule "vendor/shogi-engine-prototype"]
+	path = vendor/shogi-engine-prototype
+	url = git@github.com:your-org/shogi-engine-prototype.git

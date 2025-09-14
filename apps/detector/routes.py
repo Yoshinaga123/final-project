@@ -11,6 +11,8 @@ import os
 import datetime
 import uuid
 import json
+import sys
+import platform
 from . import detector_bp
 from apps.models.model import UserImage, db
 
@@ -86,7 +88,7 @@ def uploaded_file(filename):
     ).first()
     if not img:
         # Avoid leaking existence information
-        return ('Not Found', 404)
+    return ('Not Found', 404)
 
     upload_dir = current_app.config['DETECTOR_UPLOAD_FOLDER']
     return send_from_directory(upload_dir, base_name)
@@ -318,21 +320,33 @@ def _get_yolo_model():
     """Ultralytics YOLOv8 モデルを遅延ロードし、プロセス内で再利用"""
     global _YOLO_MODEL
     if _YOLO_MODEL is not None:
+        current_app.logger.info("YOLOモデル: 既存インスタンス使用")
         return _YOLO_MODEL
+    
+    current_app.logger.info("YOLOモデル: 新規初期化開始")
+    
     try:
         from ultralytics import YOLO
+        current_app.logger.info("ultralytics import成功")
     except Exception as e:
-        current_app.logger.warning(f"Ultralyticsの読み込みに失敗: {e}")
+        current_app.logger.error(f"Ultralyticsの読み込みに失敗: {e}")
         return None
 
     # プロジェクト直下の学習済み重みを参照（yolov8n.pt）
     weights_path = os.path.join(current_app.root_path, 'yolov8n.pt')
+    current_app.logger.info(f"重みファイル確認: {weights_path}")
+    
     if not os.path.exists(weights_path):
         # カレントディレクトリ直下のケースも試す
         alt_path = os.path.abspath(os.path.join(os.getcwd(), 'yolov8n.pt'))
+        current_app.logger.info(f"代替パス確認: {alt_path}")
         weights_path = alt_path if os.path.exists(alt_path) else 'yolov8n.pt'
+        current_app.logger.info(f"使用する重みパス: {weights_path}")
+    
     try:
+        current_app.logger.info(f"YOLOモデル読み込み開始: {weights_path}")
         _YOLO_MODEL = YOLO(weights_path)
+        current_app.logger.info("YOLOモデル読み込み成功")
         return _YOLO_MODEL
     except Exception as e:
         current_app.logger.error(f"YOLOv8モデルの初期化に失敗: {e}")
@@ -341,8 +355,23 @@ def _get_yolo_model():
 def real_object_detection(filename):
     """実際の物体検知実装（Ultralytics YOLOv8 使用、CPU推論）"""
     try:
-        import numpy as np
-        from PIL import Image
+        current_app.logger.info(f"物体検知開始: {filename}")
+        
+        # 必要なライブラリのインポート確認
+        try:
+            import numpy as np
+            current_app.logger.info(f"numpy import成功: {np.__version__}")
+        except ImportError as ie:
+            current_app.logger.error(f"numpy import失敗: {ie}")
+            return simulate_object_detection_fallback(filename)
+            
+        try:
+            from PIL import Image
+            current_app.logger.info("PIL import成功")
+        except ImportError as ie:
+            current_app.logger.error(f"PIL import失敗: {ie}")
+            return simulate_object_detection_fallback(filename)
+        
         # 画像パス
         upload_dir = ensure_upload_dirs()
         image_path = os.path.join(upload_dir, filename)
@@ -352,14 +381,21 @@ def real_object_detection(filename):
 
         model = _get_yolo_model()
         if model is None:
+            current_app.logger.warning("YOLOモデルが取得できませんでした")
             return simulate_object_detection_fallback(filename)
 
         # PILで読み込み（ultralyticsはパスでも可だが、将来の前処理のため読み込む）
+        current_app.logger.info(f"画像読み込み開始: {image_path}")
         img = Image.open(image_path).convert('RGB')
+        current_app.logger.info(f"画像読み込み成功: {img.size}")
 
         # 推論（速度重視のためデフォルト設定、CPU）
+        current_app.logger.info("YOLO推論開始")
         results = model.predict(img, verbose=False)
+        current_app.logger.info(f"YOLO推論完了: {len(results)}件の結果")
+        
         if not results:
+            current_app.logger.info("検知結果なし")
             return []
         r0 = results[0]
 
@@ -411,39 +447,184 @@ def simulate_object_detection_fallback(filename):
     """
     import random
     
-    current_app.logger.info("フォールバックモード: シミュレーション実行")
+    current_app.logger.warning(f"[FALLBACK MODE] シミュレーション実行 for {filename}")
     
+    # 同一画像で安定するよう、ファイル名からシードを生成
+    seed = (hash(filename) & 0xFFFFFFFF)
+    rng = random.Random(seed)
+
     # より現実的なシミュレーション
     common_objects = ['person', 'car', 'bicycle', 'dog', 'cat', 'bird']
     rare_objects = ['horse', 'sheep', 'cow', 'elephant', 'truck', 'motorcycle']
     
     results = []
-    num_objects = random.randint(1, 3)  # より現実的な数
+    num_objects = rng.randint(1, 3)  # より現実的な数
+    
+    current_app.logger.warning(f"[FALLBACK MODE] 生成予定オブジェクト数: {num_objects}")
     
     for i in range(num_objects):
         # 一般的なオブジェクトの確率を高く
-        if random.random() < 0.8:
-            obj_class = random.choice(common_objects)
+        if rng.random() < 0.8:
+            obj_class = rng.choice(common_objects)
         else:
-            obj_class = random.choice(rare_objects)
+            obj_class = rng.choice(rare_objects)
             
-        results.append({
+        result = {
             'class': obj_class,
-            'confidence': round(random.uniform(0.65, 0.92), 2),
+            'confidence': round(rng.uniform(0.65, 0.92), 2),
             'bbox': {
-                'x': random.randint(10, 200),
-                'y': random.randint(10, 200), 
-                'width': random.randint(80, 250),
-                'height': random.randint(80, 250)
+                'x': rng.randint(10, 200),
+                'y': rng.randint(10, 200), 
+                'width': rng.randint(80, 250),
+                'height': rng.randint(80, 250)
             }
-        })
+        }
+        results.append(result)
+        current_app.logger.warning(f"[FALLBACK MODE] 生成オブジェクト {i+1}: {obj_class}")
     
+    current_app.logger.warning(f"[FALLBACK MODE] 最終結果: {len(results)}個のオブジェクト")
     return results
 
 # メイン関数のエイリアス（後方互換性）
 def simulate_object_detection(filename):
     """物体検知のメイン関数"""
     return real_object_detection(filename)
+
+def _diagnose_yolo():
+    """YOLO実行環境の自己診断を行い、詳細な状態を返す（共通ユーティリティ）。"""
+    details = {}
+
+    # Python/環境情報
+    details['python'] = {
+        'executable': sys.executable,
+        'version': sys.version.split()[0],
+        'platform': platform.platform(),
+    }
+
+    # 1. ultralytics
+    try:
+        from ultralytics import YOLO  # noqa: F401
+        details['ultralytics'] = {'ok': True}
+    except Exception as e:
+        details['ultralytics'] = {'ok': False, 'error': str(e)}
+
+    # 2. numpy
+    try:
+        import numpy as np  # noqa: F401
+        details['numpy'] = {'ok': True, 'version': np.__version__}
+    except Exception as e:
+        details['numpy'] = {'ok': False, 'error': str(e)}
+
+    # 3. pillow
+    try:
+        import PIL  # noqa: F401
+        from PIL import Image  # noqa: F401
+        details['PIL'] = {'ok': True, 'version': getattr(PIL, '__version__', '')}
+    except Exception as e:
+        details['PIL'] = {'ok': False, 'error': str(e)}
+
+    # 4. torch（任意）
+    try:
+        import torch
+        details['torch'] = {
+            'ok': True,
+            'version': torch.__version__,
+            'cuda': torch.cuda.is_available()
+        }
+    except Exception as e:
+        details['torch'] = {'ok': False, 'error': str(e)}
+
+    # 5. 重みファイル確認
+    weights_path = os.path.join(current_app.root_path, 'yolov8n.pt')
+    alt_path = os.path.abspath(os.path.join(os.getcwd(), 'yolov8n.pt'))
+    found = None
+    if os.path.exists(weights_path):
+        found = weights_path
+    elif os.path.exists(alt_path):
+        found = alt_path
+    details['weights'] = {'ok': bool(found), 'path': found or 'not found'}
+
+    # 6. モデル初期化チェック
+    model = _get_yolo_model()
+    details['yolo_model'] = {'ok': model is not None}
+
+    ok = all(
+        details[k]['ok'] if isinstance(details.get(k), dict) and 'ok' in details[k] else True
+        for k in ['ultralytics', 'numpy', 'PIL', 'yolo_model']
+    )
+
+    return {'ok': ok, 'details': details}
+
+
+@detector_bp.route('/debug/yolo-test')
+@login_required
+def debug_yolo_test():
+    """YOLOv8の動作確認用デバッグエンドポイント（詳細出力）。"""
+    try:
+        current_app.logger.info("=== YOLO診断開始 ===")
+        result = _diagnose_yolo()
+        return jsonify({
+            'status': 'success' if result['ok'] else 'error',
+            'message': 'OK' if result['ok'] else '依存/モデルが未整備',
+            'details': result['details']
+        })
+    except Exception as e:
+        current_app.logger.error(f"YOLO診断エラー: {e}")
+        return jsonify({'status': 'error', 'message': f'診断中にエラー: {e}'})
+
+
+@detector_bp.route('/health')
+@login_required
+def detector_health():
+    """運用向けヘルスチェック（簡易）。監視や起動時確認用。"""
+    try:
+        result = _diagnose_yolo()
+        # detailsは最小限のみ返す（冗長な情報はdebugへ）
+        minimal = {
+            'python': result['details'].get('python', {}),
+            'ultralytics': result['details'].get('ultralytics', {}),
+            'numpy': result['details'].get('numpy', {}),
+            'PIL': result['details'].get('PIL', {}),
+            'yolo_model': result['details'].get('yolo_model', {}),
+            'weights': result['details'].get('weights', {}),
+        }
+        status = 200 if result['ok'] else 503
+        return jsonify({'ok': result['ok'], 'components': minimal}), status
+    except Exception as e:
+        current_app.logger.error(f"ヘルスチェックエラー: {e}")
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+
+@detector_bp.before_app_request
+def _yolo_preflight_on_startup():
+    """最初のリクエストでYOLOのプリフライトを1回だけ実施（Flask 3.x対応）。
+    DETECTOR_YOLO_PREFLIGHT=False で無効化可。
+    """
+    # 一度だけ実行するためのガード（アプリ設定を利用）
+    if current_app.config.get('_YOLO_PREFLIGHT_DONE'):
+        return
+    current_app.config['_YOLO_PREFLIGHT_DONE'] = True
+
+    if not current_app.config.get('DETECTOR_YOLO_PREFLIGHT', True):
+        return
+    try:
+        res = _diagnose_yolo()
+        if res['ok']:
+            current_app.logger.info('[YOLOプリフライト] 依存関係OK、モデル初期化成功')
+            # 軽いウォームアップ（32x32の黒画像で予測を一度呼ぶ）
+            try:
+                from PIL import Image
+                model = _get_yolo_model()
+                if model is not None:
+                    img = Image.new('RGB', (32, 32), color=(0, 0, 0))
+                    _ = model.predict(img, imgsz=32, verbose=False)
+                    current_app.logger.info('[YOLOプリフライト] ウォームアップ完了')
+            except Exception as we:
+                current_app.logger.warning(f'[YOLOプリフライト] ウォームアップ失敗（継続）: {we}')
+        else:
+            current_app.logger.error(f"[YOLOプリフライト] 不整合検出: {res['details']}")
+    except Exception as e:
+        current_app.logger.error(f'[YOLOプリフライト] 実行エラー: {e}')
 
 @detector_bp.route('/results')
 @login_required  

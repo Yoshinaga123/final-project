@@ -1,0 +1,38 @@
+{
+  "image_filename": "20250912_095234_3e4174ef.jpg",
+  "updated_at": "2025-09-12T00:52:43Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "bicycle",
+      "confidence": 0.77,
+      "bbox": {
+        "x": 13,
+        "y": 121,
+        "width": 147,
+        "height": 124
+      }
+    },
+    {
+      "class": "bicycle",
+      "confidence": 0.82,
+      "bbox": {
+        "x": 177,
+        "y": 124,
+        "width": 244,
+        "height": 135
+      }
+    },
+    {
+      "class": "car",
+      "confidence": 0.86,
+      "bbox": {
+        "x": 137,
+        "y": 48,
+        "width": 233,
+        "height": 190
+      }
+    }
+  ],
+  "count": 3
+}

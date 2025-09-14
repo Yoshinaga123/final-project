@@ -1,0 +1,18 @@
+{
+  "image_filename": "20250912_104655_48cc6851.jpg",
+  "updated_at": "2025-09-12T01:46:55Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "cat",
+      "confidence": 0.89,
+      "bbox": {
+        "x": 326,
+        "y": 1,
+        "width": 681,
+        "height": 672
+      }
+    }
+  ],
+  "count": 1
+}

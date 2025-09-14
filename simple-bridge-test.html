@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleBridge テスト</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        button { margin: 5px; padding: 10px 15px; }
+        #log { background-color: #f8f9fa; padding: 15px; height: 300px; overflow-y: auto; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>SimpleBridge テスト画面</h1>
+    
+    <div id="status" class="status disconnected">未接続</div>
+    
+    <div>
+        <button onclick="testConnect()">接続</button>
+        <button onclick="testDisconnect()">切断</button>
+        <button onclick="testNewGame()">新しいゲーム</button>
+        <button onclick="testHumanMove()">人間の手（7g7f）</button>
+        <button onclick="clearLog()">ログクリア</button>
+    </div>
+    
+    <h3>ログ</h3>
+    <div id="log"></div>
+    
+    <script src="/static/engine/simple-bridge.js"></script>
+    <script>
+        const statusEl = document.getElementById('status');
+        const logEl = document.getElementById('log');
+        
+        function log(message) {
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `[${time}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus() {
+            if (window.SimpleBridge && window.SimpleBridge.isConnected()) {
+                statusEl.textContent = '接続済み';
+                statusEl.className = 'status connected';
+            } else {
+                statusEl.textContent = '未接続';
+                statusEl.className = 'status disconnected';
+            }
+        }
+        
+        function testConnect() {
+            log('接続テスト開始...');
+            if (window.SimpleBridge) {
+                window.SimpleBridge.connect();
+            } else {
+                log('エラー: SimpleBridge が見つかりません');
+            }
+        }
+        
+        function testDisconnect() {
+            log('切断テスト...');
+            if (window.SimpleBridge) {
+                window.SimpleBridge.disconnect();
+            }
+        }
+        
+        function testNewGame() {
+            log('新しいゲーム開始テスト...');
+            if (window.SimpleBridge) {
+                window.SimpleBridge.newGame();
+            }
+        }
+        
+        function testHumanMove() {
+            log('人間の手テスト（7g7f）...');
+            if (window.SimpleBridge) {
+                window.SimpleBridge.humanMove('7g7f');
+            }
+        }
+        
+        function clearLog() {
+            logEl.innerHTML = '';
+        }
+        
+        // イベントリスナー設定
+        window.addEventListener('load', function() {
+            if (window.SimpleBridge) {
+                log('SimpleBridge 初期化完了');
+                
+                // イベントリスナー登録
+                window.SimpleBridge.on('open', function() {
+                    log('✅ WebSocket接続成功');
+                    updateStatus();
+                });
+                
+                window.SimpleBridge.on('close', function(event) {
+                    log('❌ WebSocket接続終了: ' + (event.reason || '理由不明'));
+                    updateStatus();
+                });
+                
+                window.SimpleBridge.on('error', function(error) {
+                    log('🚨 エラー: ' + JSON.stringify(error));
+                    updateStatus();
+                });
+                
+                window.SimpleBridge.on('engineMove', function(move) {
+                    log('🤖 エンジンの手: ' + move);
+                });
+                
+                window.SimpleBridge.on('humanMove', function(move) {
+                    log('👤 人間の手: ' + move);
+                });
+                
+                window.SimpleBridge.on('message', function(data) {
+                    log('📨 メッセージ: ' + JSON.stringify(data));
+                });
+                
+                // 状態チェック
+                setInterval(updateStatus, 1000);
+                
+            } else {
+                log('❌ SimpleBridge の読み込みに失敗しました');
+            }
+        });
+    </script>
+</body>
+</html>

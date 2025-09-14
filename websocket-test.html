@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    <div id="status">未接続</div>
+    <div id="log"></div>
+    
+    <script>
+        const log = (msg) => {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += '<div>' + new Date().toTimeString() + ': ' + msg + '</div>';
+            console.log(msg);
+        };
+        
+        const updateStatus = (msg) => {
+            document.getElementById('status').innerText = msg;
+            log('Status: ' + msg);
+        };
+        
+        log('WebSocket接続開始...');
+        updateStatus('接続中...');
+        
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const url = 'ws://127.0.0.1:8787/ws' + (token ? ('?token=' + encodeURIComponent(token)) : '');
+            log('接続URL: ' + url);
+            const ws = new WebSocket(url);
+            
+            ws.onopen = function() {
+                updateStatus('✓ 接続成功');
+                log('✓ WebSocket接続成功');
+                
+                // 制御権を要求
+                setTimeout(() => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        const msg = JSON.stringify({type:'takeControl'});
+                        ws.send(msg);
+                        log('送信: ' + msg);
+                    }
+                }, 100);
+            };
+            
+            ws.onmessage = function(event) {
+                log('受信: ' + event.data);
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'status') {
+                        updateStatus('✓ ' + data.message);
+                    }
+                } catch (e) {
+                    log('JSON解析エラー: ' + e);
+                }
+            };
+            
+            ws.onclose = function(event) {
+                updateStatus('✗ 切断 (code: ' + event.code + ')');
+                log('✗ WebSocket切断 (code: ' + event.code + ')');
+            };
+            
+            ws.onerror = function(error) {
+                updateStatus('✗ エラー');
+                log('✗ WebSocketエラー: ' + error);
+            };
+            
+        } catch (e) {
+            updateStatus('✗ 例外発生');
+            log('✗ 例外: ' + e);
+        }
+    </script>
+</body>
+</html>
