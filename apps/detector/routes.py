@@ -88,7 +88,7 @@ def uploaded_file(filename):
     ).first()
     if not img:
         # Avoid leaking existence information
-    return ('Not Found', 404)
+        return ('Not Found', 404)
 
     upload_dir = current_app.config['DETECTOR_UPLOAD_FOLDER']
     return send_from_directory(upload_dir, base_name)
