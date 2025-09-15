@@ -52,9 +52,28 @@ USI_EVAL_DIR=$(Split-Path $engine -Parent)
           Write-Host "[DEBUG] .env content:"
           Get-Content ".\.env"
 
+      - name: Assert .env before pytest
+        shell: pwsh
+        run: |
+          Write-Host "PWD=" (Get-Location)
+          if (-not (Test-Path ".\\scripts\\run-bridge.ps1")) { throw "BRIDGE_SCRIPT_NOT_FOUND at $(Get-Location)" }
+          if (-not (Test-Path ".\\tests\\test_engine_e2e.py")) { throw "TEST_FILE_NOT_FOUND at $(Get-Location)" }
+          if (-not (Test-Path ".\\.env")) { throw "ENV_NOT_FOUND at $(Get-Location)" }
+          Write-Host "----- .env -----"
+          Get-Content ".\\.env"
+          if (-not (Select-String -Path ".\\.env" -Pattern '^USI_ENGINE_PATH=')) { throw "ENV_MISSING_KEY: USI_ENGINE_PATH" }
+          if (-not (Select-String -Path ".\\.env" -Pattern '^USI_EVAL_DIR=')) { Write-Host "[WARN] ENV_MISSING_KEY: USI_EVAL_DIR" }
+          # Show resolved engine path and existence
+          $engineLine = (Get-Content ".\\.env" | Where-Object { $_ -like 'USI_ENGINE_PATH=*' } | Select-Object -First 1)
+          if ($engineLine) {
+            $enginePath = $engineLine.Split('=',2)[1]
+            Write-Host "Resolved USI_ENGINE_PATH=$enginePath"
+            if (-not (Test-Path $enginePath)) { throw "ENGINE_PATH_NOT_FOUND: $enginePath" }
+          }
+
       - name: Run E2E
         run: |
-          pytest -q tests/test_engine_e2e.py
+          python -m pytest -q tests/test_engine_e2e.py --cache-clear
       - name: Upload bridge logs
         if: always()
         uses: actions/upload-artifact@v4
