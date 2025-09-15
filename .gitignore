@@ -43,3 +43,6 @@ nn.bin
 *.7z
 *.zip
 *.exe
+
+# Detector generated images and artifacts
+apps/detector/images/
