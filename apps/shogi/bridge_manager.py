@@ -50,9 +50,9 @@ def ensure_bridge_running(app):
     ps1 = app.config.get('USI_BRIDGE_PS1') or os.path.join(app.root_path, 'scripts', 'run-bridge.ps1')
     ps1 = os.path.abspath(ps1)
 
-    # エンジンパスが未設定の場合は既定の水匠パスにフォールバック
+    # エンジンパスが未設定の場合は既定の水匠パスにフォールバック（実際のインストール場所）
     engine = app.config.get('USI_ENGINE_PATH') or \
-         r"C:\\shogi\\engines\\suisho\\YaneuraOu_NNUE_halfKP256-V830Git_ZEN3.exe"
+         r"C:\Users\yoshinaga_kosuke\Downloads\Suisho5-ZEN2.exe"
     port = str(app.config.get('USI_BRIDGE_PORT', 8787))
     token = app.config.get('USI_BRIDGE_TOKEN')
     pyexe = app.config.get('PYTHON_EXE', 'python')

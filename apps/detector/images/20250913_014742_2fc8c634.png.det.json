@@ -1,0 +1,18 @@
+{
+  "image_filename": "20250913_014742_2fc8c634.png",
+  "updated_at": "2025-09-13T01:13:50Z",
+  "model": "yolov8n",
+  "results": [
+    {
+      "class": "person",
+      "confidence": 0.82,
+      "bbox": {
+        "x": 92,
+        "y": 84,
+        "width": 233,
+        "height": 214
+      }
+    }
+  ],
+  "count": 1
+}
