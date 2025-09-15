@@ -1,0 +1,14 @@
+{
+  "name": "Suisho-R6 Windows 64bit",
+  "version": "R6",
+  "archiveUrl": "https://example.com/suisho_r6_win64.zip",
+  "archiveSha256": "REPLACE_WITH_ACTUAL_SHA256",
+  "innerPathHints": [
+    "*.exe",
+    "YaneuraOu-*.exe",
+    "suisho*.exe"
+  ],
+  "engineRename": "Suisho.exe",
+  "evalDirRelative": "eval",
+  "evalRequired": true
+}

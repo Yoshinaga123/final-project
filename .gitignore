@@ -10,6 +10,14 @@ venv/
 local.sqlite
 logs/
 
+# Engine/Eval/Downloads (binaries & artifacts)
+downloads/
+engines/*
+!engines/.gitkeep
+
+# Detector generated images
+apps/detector/images/
+
 # Log files (unified)
 *.log
 *.log.*

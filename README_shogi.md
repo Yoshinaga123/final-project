@@ -15,6 +15,36 @@ MOVETIME_MS=2000  # 既定値は 2000ms（旧 USI_MOVETIME_MS は後方互換で
 # USI_BRIDGE_TOKEN=xxxx   # optional
 ```
 
+## ゼロセットアップ（公式配布からの自動導入）
+
+ライセンスに同意済みであれば、次の手順で水匠（またはやねうら王相当）を自動ダウンロード・検証・展開して `engines/` に配置できます。
+
+1) マニフェスト JSON を作成（URL と SHA256 を記載）
+   - 雛形: `tools/suisho_manifest.sample.json`
+   - 例: `tools/suisho_manifest.json` を作成し、`archiveUrl` と `archiveSha256` を実ファイルに合わせて書き換え
+
+2) セットアップスクリプトの実行（PowerShell）
+   ```powershell
+   # PowerShell を管理者で開くことを推奨（7zip の PATH など環境依存のため）
+   cd .\final-project
+   scripts\setup-suisho.ps1 -Manifest tools/suisho_manifest.json -InstallDir engines/suisho
+   ```
+
+   - ZIP の場合は OS 標準で展開します
+   - 7z の場合は `7z` コマンドが必要です（PATH 上に 7z.exe を追加）
+   - ダウンロード完了後に SHA256 を検証し、不一致なら中断します
+   - 展開後に最適な exe を自動検出し、`.env` の `USI_ENGINE_PATH` を上書きします（`-NoEnv` で抑止可）
+
+3) ブリッジ起動（通常どおり）
+   ```powershell
+   scripts\run-bridge.ps1 -Port 8787
+   ```
+
+トラブルシュート:
+- "7z not found" → 7-Zip をインストールし、`7z` が PATH から呼べるようにしてください
+- "SHA256 mismatch" → URL・ファイルの改版や入力ミスを確認してください
+- "No engine .exe found" → マニフェストの `innerPathHints` を実アーカイブの構成に合わせて調整
+
 ## 受け入れ基準（DoD）
 - `/shogi/vs-engine` でUI表示、WS疎通
 - 終局時に1回だけ `GAME_OVER` を受信し、以後入力拒否（UIロック）

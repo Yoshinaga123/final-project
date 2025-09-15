@@ -1,0 +1,13 @@
+{
+  "name": "Suisho5 ZEN2 EXE",
+  "version": "ZEN2",
+  "archiveUrl": "https://raw.githubusercontent.com/HiraokaTakuya/get_suisho5_nn/master/%E6%B0%B4%E5%8C%A05/Suisho5-ZEN2.exe",
+  "archiveSha256": "B0076C0FE3618A61BDF9D8E87C230311B9E1A0CC291029EB5D2372C8D8083D64",
+  "innerPathHints": [
+    "Suisho5-ZEN2.exe",
+    "*.exe"
+  ],
+  "engineRename": "Suisho5.exe",
+  "evalDirRelative": "eval",
+  "evalRequired": true
+}
