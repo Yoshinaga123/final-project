@@ -14,6 +14,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Show commit info
+        shell: pwsh
+        run: |
+          Write-Host "===== Current commit ====="
+          git rev-parse HEAD
+          git log -1 --oneline
+          Write-Host "`n===== Modified files in this commit ====="
+          git show --name-only HEAD
       # 方式B: HTTPS + PAT を使う場合は、上のSSH手順ではなくこちらを使う（例）
       # token: ${{ secrets.SUBMOD_PAT }}
       - uses: actions/setup-python@v5
@@ -23,18 +32,95 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest websocket-client
-      - name: Set env (example)
+      - name: Prepare .env for E2E
+        shell: pwsh
         run: |
-          echo USI_BRIDGE_PORT=8787>> $env:GITHUB_ENV
-          echo USI_BRIDGE_TOKEN=TEST>> $env:GITHUB_ENV
-          echo POWERSHELL_EXE=$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe>> $env:GITHUB_ENV
+          # Prefer the Python script directly to avoid cmd/batch shims
+          $engine = Join-Path $pwd "tools\mock_engine\mock_usi.py"
+          if (-not (Test-Path $engine)) {
+            Write-Host "[ERROR] mock engine not found at: $engine"
+            Write-Host "[DEBUG] Searching for mock engine files recursively:"
+            Get-ChildItem -Recurse -Include "mock_usi.py","mock_engine.bat" . | % { Write-Host "Found: $($_.FullName)" }
+            throw "MOCK_ENGINE_MISSING"
+          }
+          Write-Host "[DEBUG] Using engine: $engine"
+          Get-Item $engine | Format-List FullName,Length,LastWriteTime
+
+          @"
+USI_ENGINE_PATH=$engine
+USI_EVAL_DIR=$(Split-Path $engine -Parent)
+"@ | Out-File -FilePath ".\.env" -Encoding ascii
+
+          Write-Host "[DEBUG] .env content:"
+          Get-Content ".\.env"
+
+      - name: Assert .env before pytest
+        shell: pwsh
+        run: |
+          Write-Host "PWD=" (Get-Location)
+          if (-not (Test-Path ".\\scripts\\run-bridge.ps1")) { throw "BRIDGE_SCRIPT_NOT_FOUND at $(Get-Location)" }
+          if (-not (Test-Path ".\\tests\\test_engine_e2e.py")) { throw "TEST_FILE_NOT_FOUND at $(Get-Location)" }
+          if (-not (Test-Path ".\\.env")) { throw "ENV_NOT_FOUND at $(Get-Location)" }
+          Write-Host "----- .env -----"
+          Get-Content ".\\.env"
+          if (-not (Select-String -Path ".\\.env" -Pattern '^USI_ENGINE_PATH=')) { throw "ENV_MISSING_KEY: USI_ENGINE_PATH" }
+          if (-not (Select-String -Path ".\\.env" -Pattern '^USI_EVAL_DIR=')) { Write-Host "[WARN] ENV_MISSING_KEY: USI_EVAL_DIR" }
+          # Show resolved engine path and existence
+          $engineLine = (Get-Content ".\\.env" | Where-Object { $_ -like 'USI_ENGINE_PATH=*' } | Select-Object -First 1)
+          if ($engineLine) {
+            $enginePath = $engineLine.Split('=',2)[1]
+            Write-Host "Resolved USI_ENGINE_PATH=$enginePath"
+            if (-not (Test-Path $enginePath)) { throw "ENGINE_PATH_NOT_FOUND: $enginePath" }
+          }
+
+      - name: Smoke test mock engine (usi handshake)
+        shell: pwsh
+        run: |
+          $enginePath = ((Get-Content ".\\.env" | Where-Object { $_ -like 'USI_ENGINE_PATH=*' } | Select-Object -First 1).Split('=',2))[1]
+          Write-Host "[DEBUG] Smoke-testing engine: $enginePath"
+          $py = (Get-Command python -ErrorAction SilentlyContinue)
+          if (-not $py) { throw "PYTHON_NOT_FOUND in PATH" }
+          $cmd = @('python','-u', $enginePath)
+          $psi = New-Object System.Diagnostics.ProcessStartInfo
+          $psi.FileName = $cmd[0]
+          $psi.Arguments = ($cmd[1..($cmd.Length-1)] -join ' ')
+          $psi.RedirectStandardInput = $true
+          $psi.RedirectStandardOutput = $true
+          $psi.RedirectStandardError = $true
+          $psi.UseShellExecute = $false
+          $p = New-Object System.Diagnostics.Process
+          $p.StartInfo = $psi
+          [void]$p.Start()
+          $p.StandardInput.WriteLine('usi')
+          $p.StandardInput.WriteLine('quit')
+          $p.StandardInput.Flush()
+          $out = $p.StandardOutput.ReadToEnd()
+          $err = $p.StandardError.ReadToEnd()
+          $p.WaitForExit()
+          Write-Host "[ENGINE STDOUT]"; Write-Host $out
+          if ($err) { Write-Host "[ENGINE STDERR]"; Write-Host $err }
+          if ($out -notmatch 'usiok') { throw "MOCK_ENGINE_HANDSHAKE_FAILED" }
+
       - name: Run E2E
         run: |
-          pytest -q tests/test_engine_e2e.py
-      - name: Upload bridge logs on failure
-        if: failure()
+          python -m pytest -q tests/test_engine_e2e.py --cache-clear
+      - name: Upload bridge logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: usi-bridge-logs
-          path: logs/usi-bridge/**
+          name: bridge-logs
+          path: |
+            logs/usi-bridge/**/*.log
+            logs/usi-bridge/**/*.err
+            **/bridge-*.log
+            **/bridge-*.err
           if-no-files-found: ignore
+      - name: Summarize bridge log tail
+        if: failure()
+        shell: pwsh
+        run: |
+          $logs = Get-ChildItem -Recurse -Include bridge-*.log | Sort-Object LastWriteTime -Descending
+          if ($logs) {
+            "### Bridge log tail`n" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+            (Get-Content $logs[0].FullName -Tail 120) -join "`n" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          }
