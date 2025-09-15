@@ -1,4 +1,4 @@
-import os, time, json, subprocess, http.client, socket, random
+import os, time, json, subprocess, http.client, socket, random, platform
 try:
     from websocket import create_connection
 except Exception as e:
@@ -18,7 +18,17 @@ BRIDGE_PORT = int(os.getenv("USI_BRIDGE_PORT") or _find_free_port())
 os.environ["USI_BRIDGE_PORT"] = str(BRIDGE_PORT)
 BRIDGE_HOST = os.getenv("USI_BRIDGE_HOST", "127.0.0.1")
 TOKEN       = os.getenv("USI_BRIDGE_TOKEN", "TEST")
-PS_EXE      = os.getenv("POWERSHELL_EXE", r"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe")
+
+# Cross-platform script execution
+IS_WINDOWS = platform.system() == "Windows"
+if IS_WINDOWS:
+    PS_EXE = os.getenv("POWERSHELL_EXE", r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe")
+    BRIDGE_SCRIPT = ".\\scripts\\run-bridge.ps1"
+    DEFAULT_ENGINE = "tools\\mock_engine\\mock_engine.bat"
+else:
+    # Linux/Ubuntu
+    BRIDGE_SCRIPT = "./scripts/run-bridge.sh"
+    DEFAULT_ENGINE = "tools/mock_engine/mock_usi.py"
 
 
 def _health_direct():
@@ -56,17 +66,26 @@ def _start_bridge_if_needed():
     if code == 200:
         print("[DEBUG] Bridge already running")
         return None  # already running
-    
-    # Get engine path from environment, fallback to mock engine
-    engine_path = os.getenv("USI_ENGINE_PATH", "tools\\mock_engine\\mock_engine.bat")
+
+    # Get engine path from environment, fallback to platform-appropriate mock engine
+    engine_path = os.getenv("USI_ENGINE_PATH", DEFAULT_ENGINE)
     print(f"[DEBUG] Using engine path: {engine_path}")
+    print(f"[DEBUG] Platform: {platform.system()}")
+
+    # Build platform-appropriate command
+    if IS_WINDOWS:
+        cmd = [
+            PS_EXE, "-ExecutionPolicy", "Bypass", "-File", BRIDGE_SCRIPT,
+            "-Engine", engine_path,
+            "-Port", str(BRIDGE_PORT), "-Token", TOKEN, "-ReadyTimeoutSec", "20",
+        ]
+    else:
+        # Linux/Ubuntu - use shell script
+        cmd = [
+            "bash", BRIDGE_SCRIPT,
+            str(BRIDGE_PORT), TOKEN, engine_path
+        ]
     
-    # run-bridge.ps1 (Engine/Script は .env で解決)
-    cmd = [
-        PS_EXE, "-ExecutionPolicy", "Bypass", "-File", ".\\scripts\\run-bridge.ps1",
-        "-Engine", engine_path,
-        "-Port", str(BRIDGE_PORT), "-Token", TOKEN, "-ReadyTimeoutSec", "20",
-    ]
     print(f"[DEBUG] Starting bridge with command: {' '.join(cmd)}")
     try:
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
@@ -92,7 +111,7 @@ import pytest
 def test_health_and_ws_roundtrip():
     print(f"[DEBUG] Starting E2E test - Host: {BRIDGE_HOST}, Port: {BRIDGE_PORT}, Token: {TOKEN}")
     print(f"[DEBUG] PowerShell executable: {PS_EXE}")
-    
+
     proc = _start_bridge_if_needed()
     try:
         health_ok = _wait_health_ok()
@@ -122,18 +141,18 @@ def test_health_and_ws_roundtrip():
                     print("[DEBUG] Could not get bridge output")
             else:
                 print("[DEBUG] No bridge process was started")
-        
+
         assert health_ok, "bridge health did not become ok"
-        
+
         print(f"[DEBUG] Connecting to WebSocket at ws://{BRIDGE_HOST}:{BRIDGE_PORT}/ws?token={TOKEN}")
         ws = create_connection(f"ws://{BRIDGE_HOST}:{BRIDGE_PORT}/ws?token={TOKEN}", timeout=6)
-        
+
         print("[DEBUG] Sending gameNew message")
         ws.send(json.dumps({"type":"gameNew"}))
-        
+
         print("[DEBUG] Sending humanMove message")
         ws.send(json.dumps({"type":"humanMove","move":"7g7f","movetime_ms":500}))
-        
+
         deadline = time.time() + 10
         got_engine = False
         while time.time() < deadline:
