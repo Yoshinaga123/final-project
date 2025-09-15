@@ -23,21 +23,73 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest websocket-client
-      - name: Set env (example)
+      - name: Load .env (optional)
+        shell: pwsh
         run: |
-          echo USI_BRIDGE_PORT=8787>> $env:GITHUB_ENV
-          echo USI_BRIDGE_TOKEN=TEST>> $env:GITHUB_ENV
-          echo POWERSHELL_EXE=$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe>> $env:GITHUB_ENV
-          echo PYTEST_USE_FLASK=0>> $env:GITHUB_ENV
-          echo USI_ENGINE_PATH=tools\mock_engine\mock_engine.bat>> $env:GITHUB_ENV
-          echo PYTHON_EXE=python>> $env:GITHUB_ENV
+          if (Test-Path .\.env) {
+            Write-Host "Loading .env into environment..."
+            Get-Content .\.env | ForEach-Object {
+              $line = $_.Trim(); if ($line -eq '' -or $line.StartsWith('#')) { return }
+              $kv = $line -split '=',2; if ($kv.Count -eq 2) { $k = $kv[0].Trim(); $v = $kv[1].Trim(); echo "$k=$v" | Out-File -FilePath $env:GITHUB_ENV -Append }
+            }
+          } else {
+            Write-Host ".env not found; proceeding with mock engine resolution."
+          }
+      - name: Resolve mock engine and export env
+        shell: pwsh
+        run: |
+          $engine = Resolve-Path ".\tools\mock_engine\mock_engine.bat"
+          if (-not (Test-Path $engine)) { throw "MOCK_ENGINE_MISSING: $engine" }
+          "USI_ENGINE_PATH=$engine" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "USI_BRIDGE_PORT=8787" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "USI_BRIDGE_TOKEN=TEST" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "POWERSHELL_EXE=$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PYTEST_USE_FLASK=0" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PYTHON_EXE=python" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "APP_ENV=development" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Show script header (debug)
+        shell: pwsh
+        run: |
+          Write-Host "===== scripts/run-bridge.ps1 (head) ====="
+          Get-Content .\scripts\run-bridge.ps1 -Head 60 | ForEach-Object { Write-Host $_ }
+          Write-Host "===== end ====="
+      - name: Show resolved env (debug)
+        shell: pwsh
+        run: |
+          Write-Host "USI_ENGINE_PATH: $env:USI_ENGINE_PATH"
+          Write-Host "USI_BRIDGE_PORT: $env:USI_BRIDGE_PORT"
+          if ($env:USI_BRIDGE_TOKEN) { Write-Host "USI_BRIDGE_TOKEN: (set)" } else { Write-Host "USI_BRIDGE_TOKEN: (empty)" }
+          Write-Host "APP_ENV: $env:APP_ENV"
+          Write-Host "POWERSHELL_EXE: $env:POWERSHELL_EXE"
+          Write-Host "Test file last modified: $(Get-Item tests\test_engine_e2e.py).LastWriteTime"
       - name: Run E2E
+        env:
+          USI_ENGINE_PATH: ${{ env.USI_ENGINE_PATH }}
+          USI_BRIDGE_PORT: ${{ env.USI_BRIDGE_PORT }}
+          USI_BRIDGE_TOKEN: ${{ env.USI_BRIDGE_TOKEN }}
+          POWERSHELL_EXE: ${{ env.POWERSHELL_EXE }}
+          APP_ENV: ${{ env.APP_ENV }}
+          PYTHON_EXE: ${{ env.PYTHON_EXE }}
         run: |
           pytest -q tests/test_engine_e2e.py
-      - name: Upload bridge logs on failure
-        if: failure()
+      - name: Upload bridge logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: usi-bridge-logs
-          path: logs/usi-bridge/**
+          name: bridge-logs
+          path: |
+            logs/usi-bridge/**/*.log
+            logs/usi-bridge/**/*.err
+            **/bridge-*.log
+            **/bridge-*.err
           if-no-files-found: ignore
+      - name: Summarize bridge log tail
+        if: failure()
+        shell: pwsh
+        run: |
+          $logs = Get-ChildItem -Recurse -Include bridge-*.log | Sort-Object LastWriteTime -Descending
+          if ($logs) {
+            "### Bridge log tail`n" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+            (Get-Content $logs[0].FullName -Tail 120) -join "`n" | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          }

@@ -18,6 +18,8 @@ set -euo pipefail
 #   3) ./scripts/run-bridge.sh
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULT_MOCK="${SCRIPT_DIR}/../tools/mock_engine/mock_usi.py"
 
 # Auto-load .env if present (export everything declared there)
 if [[ -f "${ROOT_DIR}/.env" ]]; then
@@ -26,15 +28,25 @@ if [[ -f "${ROOT_DIR}/.env" ]]; then
   source "${ROOT_DIR}/.env"
   set +a
 fi
-ENGINE="${USI_ENGINE_PATH:-}"
+ENGINE="${1:-${USI_ENGINE_PATH:-}}"
 HOST="${USI_BRIDGE_HOST:-127.0.0.1}"
 PORT="${USI_BRIDGE_PORT:-8787}"
 TOKEN="${USI_BRIDGE_TOKEN:-}"
 PY="${PYTHON_EXE:-python}"
 
 if [[ -z "${ENGINE}" ]]; then
-  echo "ERROR: USI_ENGINE_PATH is not set. Set it in .env or export it." >&2
-  exit 1
+  # In production, do not allow silent fallback
+  if [[ "${APP_ENV:-}" == "production" ]]; then
+    echo "ENGINE_REQUIRED_IN_PROD: set -Engine arg or USI_ENGINE_PATH" >&2
+    exit 3
+  fi
+  if [[ -f "${DEFAULT_MOCK}" ]]; then
+    echo "[run-bridge.sh] USI_ENGINE_PATH not set; using mock engine: ${DEFAULT_MOCK}" >&2
+    ENGINE="${DEFAULT_MOCK}"
+  else
+    echo "MOCK_ENGINE_MISSING: ${DEFAULT_MOCK}" >&2
+    exit 4
+  fi
 fi
 # If a directory is given, try to auto-detect an engine binary inside
 if [[ -d "${ENGINE}" ]]; then
@@ -46,14 +58,27 @@ if [[ -d "${ENGINE}" ]]; then
   done
 fi
 
-if [[ ! -x "${ENGINE}" ]]; then
-  echo "ERROR: Engine binary not executable: ${ENGINE}" >&2
-  echo "Hint: set USI_ENGINE_PATH to the engine file or a directory containing it (e.g., .../source/AVX2), then ensure chmod +x." >&2
+if [[ -f "${ENGINE}" ]]; then
+  # Allow Python scripts even if not executable; usi-bridge.py will run them via the current interpreter
+  if [[ -x "${ENGINE}" || "${ENGINE}" == *.py ]]; then
+    : # ok
+  else
+    echo "ENGINE_NOT_EXECUTABLE: ${ENGINE}" >&2
+    echo "Hint: either 'chmod +x' the engine binary, or point USI_ENGINE_PATH to a .py engine script (allowed without +x)." >&2
+    exit 2
+  fi
+else
+  echo "ERROR: Engine path not found: ${ENGINE}" >&2
   exit 1
 fi
 
 cd "${ROOT_DIR}"
 ARGS=("${ENGINE}" "${PORT}" "--host" "${HOST}")
 if [[ -n "${TOKEN}" ]]; then ARGS+=("--token" "${TOKEN}"); fi
+# Friendly startup log
+echo "[run-bridge.sh] Starting USI bridge"
+echo "  Engine: ${ENGINE}"
+echo "  Listen: ws://${HOST}:${PORT}/ws"
+if [[ -n "${TOKEN}" ]]; then echo "  Token : (set)"; else echo "  Token : (none)"; fi
 
 exec "${PY}" tools/usi-bridge.py "${ARGS[@]}"

@@ -26,8 +26,8 @@ if(Test-Path $DotEnvPath){
       if($kv.Count -eq 2){
         $k = $kv[0].Trim(); $v = $kv[1].Trim().Trim('"').Trim("'")
         if(-not [string]::IsNullOrWhiteSpace($k)){
-          if(-not (Get-Item "env:$k" -ErrorAction SilentlyContinue)){ 
-            Set-Item "env:$k" $v 
+          if(-not (Get-Item "env:$k" -ErrorAction SilentlyContinue)){
+            Set-Item "env:$k" $v
           }
         }
       }
@@ -55,9 +55,23 @@ function Ensure-LogDir([string]$path){ if(-not (Test-Path $path)){ New-Item -Ite
 if(-not $PSBoundParameters.ContainsKey('Port') -and $env:USI_BRIDGE_PORT){ $Port = [int]$env:USI_BRIDGE_PORT }
 if(-not $Token -and $env:USI_BRIDGE_TOKEN){ $Token = $env:USI_BRIDGE_TOKEN }
 
-# Engine 決定（必須）
 $Engine = if($Engine){ $Engine } elseif($env:USI_ENGINE_PATH){ $env:USI_ENGINE_PATH } else { $null }
-if(-not $Engine){ throw "ENGINE_PARAM_REQUIRED: specify -Engine or set USI_ENGINE_PATH in .env" }
+
+# 本番ではフォールバックを禁止（設定漏れを隠さない）
+if($env:APP_ENV -eq 'production' -and -not $Engine){
+  throw "ENGINE_REQUIRED_IN_PROD: set -Engine or USI_ENGINE_PATH"
+}
+
+# Engine 決定（必須）: 未指定時はモックにフォールバック（開発/CIの利便性向上）
+if(-not $Engine){
+  $mock = Resolve-Abs "tools\mock_engine\mock_engine.bat"
+  if(Test-Path $mock){
+    Write-Warning "USI_ENGINE_PATH not set and -Engine not provided; using mock engine: $mock"
+    $Engine = $mock
+  } else {
+    throw "MOCK_ENGINE_MISSING: $mock"
+  }
+}
 $enginePath = Resolve-Engine (Resolve-Abs $Engine)
 
 # -Port 0 を許容して自動割当
