@@ -1,0 +1,515 @@
+{% extends "base.html" %}
+
+{% block title %}ホーム - Flaskbook{% endblock %}
+
+{% block content %}
+<style>
+    /* Rich Modern Variables */
+    :root {
+        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --gradient-gold: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+        --gradient-emerald: linear-gradient(135deg, #50c878 0%, #006a4e 100%);
+        --gradient-sunset: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+        --shadow-soft: 0 15px 35px rgba(50, 50, 93, 0.1);
+        --shadow-hover: 0 25px 50px rgba(50, 50, 93, 0.25);
+        --shadow-glow: 0 0 40px rgba(102, 126, 234, 0.3);
+        --border-radius: 25px;
+        --border-radius-sm: 15px;
+        --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        --glass-bg: rgba(255, 255, 255, 0.1);
+        --glass-border: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Rich Background with Particles */
+    .background-particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: -1;
+        background: 
+            radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(240, 147, 251, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 40% 40%, rgba(79, 172, 254, 0.03) 0%, transparent 50%);
+        animation: backgroundShift 20s ease-in-out infinite;
+    }
+
+    @keyframes backgroundShift {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        50% { transform: scale(1.05) rotate(0.5deg); }
+    }
+
+    /* Hero Section with Glass Morphism */
+    .hero-section {
+        background: linear-gradient(135deg, 
+            rgba(255, 255, 255, 0.1) 0%, 
+            rgba(255, 255, 255, 0.05) 100%);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--border-radius);
+        position: relative;
+        overflow: hidden;
+        padding: 5rem 2rem;
+        margin-bottom: 4rem;
+        box-shadow: 
+            var(--shadow-soft),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grain' width='100' height='100' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='50' cy='50' r='1' fill='%23667eea' fill-opacity='0.03'/%3E%3Ccircle cx='25' cy='25' r='0.5' fill='%23f093fb' fill-opacity='0.02'/%3E%3Ccircle cx='75' cy='75' r='0.8' fill='%234facfe' fill-opacity='0.025'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100' height='100' fill='url(%23grain)'/%3E%3C/svg%3E");
+        animation: float 30s ease-in-out infinite;
+        opacity: 0.7;
+    }
+
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, 
+            transparent 30%, 
+            rgba(102, 126, 234, 0.05) 50%, 
+            transparent 70%);
+        animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        50% { transform: translateX(100%); }
+        100% { transform: translateX(-100%); }
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 3;
+        text-align: center;
+    }
+
+    .hero-title {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 900;
+        font-size: 4rem;
+        letter-spacing: -0.03em;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 0 40px rgba(102, 126, 234, 0.3);
+        animation: titleGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes titleGlow {
+        from { filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.3)); }
+        to { filter: drop-shadow(0 0 30px rgba(102, 126, 234, 0.5)); }
+    }
+
+    .hero-subtitle {
+        font-size: 1.4rem;
+        color: #6c757d;
+        line-height: 1.7;
+        margin-bottom: 2.5rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        font-weight: 300;
+        opacity: 0.9;
+    }
+
+    /* Luxury Card Design */
+    .luxury-card {
+        background: linear-gradient(135deg, 
+            rgba(255, 255, 255, 0.15) 0%, 
+            rgba(255, 255, 255, 0.05) 100%);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--border-radius);
+        box-shadow: 
+            var(--shadow-soft),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .luxury-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.2), 
+            transparent);
+        transition: var(--transition);
+    }
+
+    .luxury-card:hover {
+        transform: translateY(-15px) scale(1.02);
+        box-shadow: var(--shadow-hover), var(--shadow-glow);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    .luxury-card:hover::before {
+        left: 100%;
+        transition: left 0.6s ease;
+    }
+
+    /* Elegant Icons */
+    .icon-luxury {
+        width: 80px;
+        height: 80px;
+        border-radius: var(--border-radius-sm);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .icon-luxury.primary { 
+        background: var(--gradient-primary); 
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+    .icon-luxury.success { 
+        background: var(--gradient-emerald); 
+        box-shadow: 0 10px 30px rgba(80, 200, 120, 0.4);
+    }
+    .icon-luxury.warning { 
+        background: var(--gradient-gold); 
+        box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+    }
+
+    .modern-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        transition: var(--transition);
+    }
+
+    .modern-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .modern-card:hover::before {
+        left: 100%;
+    }
+
+    .card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .card-icon.primary { background: var(--gradient-primary); }
+    .card-icon.success { background: var(--gradient-secondary); }
+    .card-icon.warning { background: var(--gradient-accent); }
+
+    /* Premium Buttons */
+    .btn-luxury {
+        border-radius: var(--border-radius-sm);
+        padding: 1rem 2rem;
+        font-weight: 700;
+        border: none;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.9rem;
+    /* Normalize sizing and vertical alignment */
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    }
+
+    .btn-luxury::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.3), 
+            transparent);
+        transition: var(--transition);
+    }
+
+    .btn-luxury:hover::before {
+        left: 100%;
+    }
+
+    .btn-luxury-primary {
+        background: var(--gradient-primary);
+        color: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-luxury-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
+        color: white;
+    }
+
+    .btn-luxury-outline {
+        background: transparent;
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        color: #667eea;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Ensure small variant consistently reduces height across custom buttons */
+    .btn-luxury.btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        line-height: 1.2;
+    }
+
+    .btn-luxury-outline:hover {
+        background: var(--gradient-primary);
+        border-color: transparent;
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Premium Stats Section */
+    .stats-luxury {
+        background: linear-gradient(135deg, 
+            rgba(255, 255, 255, 0.1) 0%, 
+            rgba(255, 255, 255, 0.05) 100%);
+        backdrop-filter: blur(25px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--border-radius);
+        padding: 4rem 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 
+            var(--shadow-soft),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .stats-luxury::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, 
+            transparent 40%, 
+            rgba(102, 126, 234, 0.03) 50%, 
+            transparent 60%);
+        animation: statsGlow 4s ease-in-out infinite;
+    }
+
+    @keyframes statsGlow {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+    }
+
+    .stat-luxury {
+        text-align: center;
+        padding: 1.5rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .stat-number-luxury {
+        font-size: 2.5rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.8rem;
+        filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3));
+    }
+
+    .stat-label-luxury {
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .icon-luxury {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+    }
+
+    /* Scroll Animations */
+    .fade-in-up {
+        opacity: 0;
+        transform: translateY(30px);
+        animation: fadeInUp 1s ease-out forwards;
+    }
+
+    .fade-in-up:nth-child(1) { animation-delay: 0.1s; }
+    .fade-in-up:nth-child(2) { animation-delay: 0.2s; }
+    .fade-in-up:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-on-scroll {
+        animation: slideInUp 0.8s ease-out forwards;
+    }
+
+    /* Dark mode adaptations */
+    @media (prefers-color-scheme: dark) {
+        .modern-card {
+            background: rgba(33, 37, 41, 0.9);
+        }
+        
+        .stats-section {
+            background: linear-gradient(135deg, rgba(33,37,41,0.7) 0%, rgba(52,58,64,0.7) 100%);
+        }
+    }
+
+    .mt-6 { margin-top: 4rem; }
+</style>
+
+<!-- Luxury Background -->
+<div class="background-particles"></div>
+
+<div class="container mt-5">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Flaskbook へようこそ</h1>
+            <p class="hero-subtitle">
+                AI画像認識、将棋機能、ユーザー認証システムを統合した次世代Webアプリケーション。
+                最新のテクノロジーと美しいデザインで構築された贅沢なプラットフォームをご体験ください。
+            </p>
+            <div class="mt-4">
+                <a href="{{ url_for('detector.upload') }}" class="btn btn-luxury btn-luxury-primary me-3">
+                    <i class="bi bi-rocket-takeoff me-2"></i>体験開始
+                </a>
+                <a href="{{ url_for('contact.contact') }}" class="btn btn-luxury btn-luxury-outline">
+                    <i class="bi bi-envelope-heart me-2"></i>お問い合わせ
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Luxury Features Section -->
+    <div class="row g-4 fade-in-up">
+        <div class="col-lg-4 col-md-6 fade-in-up">
+            <div class="card luxury-card">
+                <div class="card-body p-4">
+                    <div class="icon-luxury primary">
+                        <i class="bi bi-camera-fill"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">AI画像認識</h5>
+                    <p class="card-text text-muted">
+                        最新のYOLOv8技術を使用した革新的なオブジェクト検出機能。
+                        リアルタイムで画像内の物体を高精度で識別・分類します。
+                    </p>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('detector.upload') }}" class="btn btn-luxury btn-luxury-primary btn-sm">
+                            <i class="bi bi-upload me-1"></i>アップロード
+                        </a>
+                        <a href="{{ url_for('detector.gallery') }}" class="btn btn-luxury btn-luxury-outline btn-sm">
+                            <i class="bi bi-collection me-1"></i>ギャラリー
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 fade-in-up">
+            <div class="card luxury-card">
+                <div class="card-body p-4">
+                    <div class="icon-luxury success">
+                        <i class="bi bi-controller"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">将棋ゲーム</h5>
+                    <p class="card-text text-muted">
+                        伝統的な将棋文化をデジタルで体験。棋譜の管理と表示、
+                        美しいインターフェースで日本の伝統ゲームをお楽しみください。
+                    </p>
+                    <a href="{{ url_for('shogi.index') }}" class="btn btn-luxury btn-luxury-primary">
+                        <i class="bi bi-play-circle me-2"></i>将棋を楽しむ
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6 fade-in-up">
+            <div class="card luxury-card">
+                <div class="card-body p-4">
+                    <div class="icon-luxury warning">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">ユーザー認証</h5>
+                    <p class="card-text text-muted">
+                        最高水準のセキュリティを誇る認証システム。
+                        安全で直感的なインターフェースでアカウントを管理できます。
+                    </p>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-luxury btn-luxury-primary btn-sm">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>ログイン
+                        </a>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-luxury btn-luxury-outline btn-sm">
+                            <i class="bi bi-person-plus me-1"></i>登録
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

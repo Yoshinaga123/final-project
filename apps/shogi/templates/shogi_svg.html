@@ -729,7 +729,8 @@
       gameReady = true; markThinking(false);
       // 既存仕様: movetime を添えて送信 → サーバ側で position 直後に go を自動送信
       const MOVETIME_MS = (window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000;
-      sendObj({ type: 'gameNew', gameId: 'svg-click-game-' + Date.now(), position: 'startpos', movetime: MOVETIME_MS });
+  // 人間が先手（sente）、水匠は後手（gote）のため、エンジンの自動初手は打たせない
+  sendObj({ type: 'gameNew', gameId: 'svg-click-game-' + Date.now(), position: 'startpos', movetime: MOVETIME_MS, engineStarts: false });
       try { sendObj({ type: 'takeControl' }); } catch (e) {}
       try { sendObj({ type: 'getState' }); } catch (e) {}
       log('🎮 新規ゲーム開始リクエスト送信');

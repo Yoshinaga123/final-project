@@ -90,7 +90,7 @@ def start_engine_bridge():
         # 既定エンジンパス（必要に応じて config からも取得可能）
         engine_path = current_app.config.get(
             'USI_ENGINE_PATH',
-            r"C:\\shogi\\engines\\suisho\\YaneuraOu_NNUE_halfKP256-V830Git_ZEN3.exe"
+            r"C:\Users\yoshinaga_kosuke\Downloads\Suisho5-ZEN2.exe"
         )
 
         # PowerShell スクリプトの絶対パス
@@ -222,6 +222,101 @@ def new():
             flash("ファイルの保存に失敗しました", "error")
             return redirect(url_for("shogi.new"))
     return render_template('shogi/new.html')
+
+
+import json
+from urllib.parse import urljoin
+
+# 新しい候補手機能モジュール
+from .candidates import generate_candidates, emergency_candidates
+
+
+@shogi_bp.route('/api/candidate-moves', methods=['POST'])
+def get_candidate_moves():
+    """現在の盤面から候補手を取得するAPI（CSRF保護除外）"""
+    try:
+        # リクエストデータの安全な取得
+        try:
+            data = request.get_json()
+            if data is None:
+                data = {}
+                current_app.logger.warning("JSON data is None, using empty dict")
+        except Exception as json_error:
+            current_app.logger.error(f"JSON parse error: {json_error}")
+            data = {}
+        
+        # パラメータの安全な取得とバリデーション
+        position = data.get('position', 'startpos')
+        moves = data.get('moves', [])
+        current_player = data.get('current_player', 'b')
+        
+        # 入力値の検証
+        if not isinstance(moves, list):
+            moves = []
+            current_app.logger.warning("moves is not a list, using empty list")
+        
+        if current_player not in ['b', 'w']:
+            current_player = 'b'
+            current_app.logger.warning(f"Invalid current_player, using 'b'")
+        
+        current_app.logger.info(f"候補手リクエスト: moves={len(moves)}手, player={current_player}")
+        current_app.logger.debug(f"Request data: {data}")
+        current_app.logger.debug(f"Raw moves: {moves[:5] if len(moves) > 5 else moves}...")  # 最初の5手のみログ
+        
+        # 候補手生成（USIエンジン優先 → 定義済み → フォールバック → 緊急）
+        candidate_moves = generate_candidates(
+            moves=moves,
+            current_player=current_player,
+            limit=int(current_app.config.get('CANDIDATE_LIMIT', 4)),
+            movetime_ms=int(current_app.config.get('CANDIDATE_MOVETIME_MS', current_app.config.get('MOVETIME_MS', 1000))),
+            logger=current_app.logger,
+            config=current_app.config,
+            root_path=current_app.root_path,
+        )
+        
+        # 最終的な安全性チェック
+        if not candidate_moves:
+            candidate_moves = emergency_candidates(current_player)
+            current_app.logger.warning("Using emergency candidate moves")
+        
+        current_app.logger.info(f"候補手生成完了: {len(candidate_moves)}手, 局面={len(moves)}手目")
+        
+        return jsonify({
+            'success': True,
+            'candidate_moves': candidate_moves,
+            'position': position,
+            'moves_count': len(moves),
+            'current_player': current_player,
+            'phase': get_game_phase(len(moves)),
+            'debug': {
+                'moves_length': len(moves),
+                'moves_type': type(moves).__name__,
+                'data_keys': list(data.keys()) if isinstance(data, dict) else []
+            }
+        })
+        
+    except Exception as e:
+        # 最終的なエラーハンドリング
+        current_app.logger.error(f"Critical error in get_candidate_moves: {e}")
+        emergency_moves = emergency_candidates('b')
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error',
+            'candidate_moves': emergency_moves,
+            'debug_error': str(e)
+        }), 200  # 500エラーを避けるため200で返す
+
+
+def get_game_phase(move_count):
+    """ゲームの局面を判定"""
+    if move_count == 0:
+        return '初期配置'
+    elif move_count <= 10:
+        return '序盤'
+    elif move_count <= 30:
+        return '中盤'
+    else:
+        return '終盤'
 
 
 @shogi_bp.route('/api/move', methods=['POST'])

@@ -264,6 +264,8 @@
             type: 'gameNew',
             movetime: CONFIG.movetime,
             position: 'startpos',
+            // 人間が先手番（sente）で開始するため、エンジンの自動着手を禁止
+            engineStarts: false,
             gameId: 'game-' + Date.now()
         });
         send({ type: 'getState' });

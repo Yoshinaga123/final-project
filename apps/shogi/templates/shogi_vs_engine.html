@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>将棋AI対局</title>
     <script>
       // 早期スタブ: 本体がまだ読み込まれていない段階でも安全に呼べるようにする
@@ -66,9 +67,25 @@
         .status.error { background: #f8d7da; color: #721c24; }
         .status.info { background: #d1ecf1; color: #0c5460; }
         .log { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 15px; height: 300px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap; }
+        .candidate-moves-section { margin-bottom: 20px; }
+        .candidate-moves { background: #f0f8ff; border: 1px solid #b0d4ff; border-radius: 4px; padding: 15px; max-height: 200px; overflow-y: auto; }
+        .candidate-move { padding: 8px 12px; margin: 4px 0; background: white; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+        .candidate-move:hover { background: #e6f3ff; border-color: #007acc; transform: translateX(2px); }
+        .candidate-move.selected { background: #d4edda; border-color: #28a745; }
+        .move-notation { font-weight: bold; color: #2c3e50; }
+        .move-eval { font-size: 12px; color: #666; }
+        .move-eval.positive { color: #28a745; }
+        .move-eval.negative { color: #dc3545; }
+        .no-candidates { text-align: center; color: #888; padding: 20px; font-style: italic; }
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
         .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: none; border-radius: 8px; width: 300px; text-align: center; }
         .modal-buttons { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+    /* Debug UI */
+    .debug-panel { margin-top: 10px; padding: 10px; border: 1px dashed #aaa; border-radius: 6px; background: #fcfcfc; }
+    .debug-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+    .debug-row h4 { margin: 0 10px 0 0; font-size: 13px; color: #555; }
+    .debug-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .debug-toggle { padding: 6px 10px; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -118,8 +135,35 @@
             </div>
         </div>
         <div class="board-section">
+            <div class="candidate-moves-section">
+                <h3>💡 候補手</h3>
+                <div id="candidate-moves" class="candidate-moves">
+                    <div class="no-candidates">候補手を取得中...</div>
+                </div>
+            </div>
             <h3>📨 通信ログ & ゲーム状態</h3>
             <div id="log" class="log">自動接続を開始...\n</div>
+            <div id="debug-panel" class="debug-panel" style="display:none">
+              <div class="debug-row">
+                <h4>Debug Filters</h4>
+                <label><input type="checkbox" data-dcat="engine"> engine</label>
+                <label><input type="checkbox" data-dcat="game"> game</label>
+                <label><input type="checkbox" data-dcat="state"> state</label>
+                <label><input type="checkbox" data-dcat="move"> move</label>
+                <label><input type="checkbox" data-dcat="board"> board</label>
+                <label><input type="checkbox" data-dcat="candidate"> candidate</label>
+                <label><input type="checkbox" data-dcat="kif"> kif</label>
+                <label><input type="checkbox" data-dcat="csa"> csa</label>
+                <label><input type="checkbox" data-dcat="ws"> ws</label>
+                <label><input type="checkbox" data-dcat="perf"> perf</label>
+              </div>
+              <div class="debug-actions">
+                <button class="secondary debug-toggle" id="btn-dump-state">Dump State</button>
+                <button class="secondary debug-toggle" id="btn-copy-log">Copy Log</button>
+                <button class="secondary debug-toggle" id="btn-fetch-cands">Fetch Candidates</button>
+              </div>
+              <div style="margin-top:6px; font-size:12px; color:#666;">Debug mode is ON (append <code>?debug=1</code> to URL to auto-enable)</div>
+            </div>
         </div>
     </div>
 </div>
@@ -162,10 +206,207 @@ function isAdapter(){ return !!(window.USE_BRIDGE_ADAPTER && window.Bridge && ty
 function isConnected(){ return isAdapter()? window.Bridge.isConnected() : (!!ws && ws.readyState===WebSocket.OPEN); }
 function sendObj(obj){ if(isAdapter()){ try{ window.Bridge.send(obj); }catch(e){} } else { try{ ws && ws.send(JSON.stringify(obj)); }catch(e){} } }
 
+// Debug facilities
+const __params = new URLSearchParams(window.location.search);
+let debugEnabled = __params.get('debug') === '1';
+// Persisted categories
+const __DBG_STORE_KEY = 'shogi.debug.cats.v1';
+let debugCategories = { engine:true, game:true, state:true, move:true, board:false, candidate:true, kif:true, csa:true, ws:true, perf:false };
+try {
+  const saved = localStorage.getItem(__DBG_STORE_KEY);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    if (parsed && typeof parsed === 'object') debugCategories = { ...debugCategories, ...parsed };
+  }
+} catch(_) {}
+function setDebugCategory(cat, on){ debugCategories[cat]=!!on; try{ localStorage.setItem(__DBG_STORE_KEY, JSON.stringify(debugCategories)); }catch(_){} }
+function debugLog(category, message, obj){
+  try{
+    if(!debugEnabled) return;
+    if(!debugCategories[category]) return;
+    const ts = new Date().toLocaleTimeString();
+    const base = `[${ts}] DBG[${category}] ${message}`;
+    if (obj!==undefined) {
+      const json = (()=>{ try{ return JSON.stringify(obj); }catch(e){ return String(obj); } })();
+      log(base+"\n  "+json);
+    } else {
+      log(base);
+    }
+  }catch(_){ /* ignore */ }
+}
+
 // 以降は参照HTMLのロジックそのまま（WS接続先のみ ENGINE_CONFIG を優先）
   </script>
 
 <script>
+let candidateMoves = [];
+let candidateMovesEnabled = true;
+// 候補手の表記をクライアント側で一貫生成するための手番メモ
+let candidateSideOverride = null; // サーバ応答の current_player を保持（なければ gameState を利用）
+
+// USIからKIF風表記を生成（サーバの簡易"歩"表記を置き換える）
+function notationFromUSI(usiMove, sideOpt){
+  try {
+    if (!usiMove || typeof usiMove !== 'string') return '';
+    const side = sideOpt || candidateSideOverride || (gameState && (gameState.current_player || gameState.currentPlayer)) || 'b';
+    const sim = cloneBoardState();
+    return usiToKif(usiMove, side, (sq)=>pieceAtFromBoard(sim, sq));
+  } catch (e) {
+    debugLog('candidate', 'notationFromUSI error', { err: String(e), usi: usiMove });
+    return '';
+  }
+}
+
+// 候補手表示の更新
+function updateCandidateMoves(moves) {
+  candidateMoves = moves || [];
+  const container = document.getElementById('candidate-moves');
+  if (!container) return;
+  
+  if (!candidateMoves.length || !candidateMovesEnabled) {
+    container.innerHTML = '<div class="no-candidates">候補手がありません</div>';
+    return;
+  }
+  
+  // 候補手の選択状態をリセット
+  document.querySelectorAll('.candidate-move.selected').forEach(el => {
+    el.classList.remove('selected');
+  });
+  
+  container.innerHTML = candidateMoves.map((move, index) => {
+    // サーバ提供の簡易notation（常に歩）ではなく、クライアント側で正しい駒種に基づき生成
+    const computed = notationFromUSI(move.move || '', candidateSideOverride);
+    const notation = computed || move.notation || move.move || '不明';
+    const eval_str = move.eval ? formatCandidateEval(move.eval) : '';
+    const eval_class = move.eval ? (move.eval > 0 ? 'positive' : move.eval < 0 ? 'negative' : '') : '';
+    
+    return `
+      <div class="candidate-move" data-move="${move.move || ''}" onclick="selectCandidateMove('${move.move || ''}', ${index})">
+        <span class="move-notation">${notation}</span>
+        ${eval_str ? `<span class="move-eval ${eval_class}">${eval_str}</span>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+// 候補手の評価値を整形
+function formatCandidateEval(eval_val) {
+  if (typeof eval_val === 'number') {
+    return eval_val > 0 ? `+${eval_val}` : `${eval_val}`;
+  }
+  return '';
+}
+
+// 候補手をクリックした時の処理
+function selectCandidateMove(usiMove, index) {
+  if (!usiMove || !candidateMovesEnabled) return;
+  if (thinking) {
+    toast('エンジン思考中は候補手を選択できません', false);
+    return;
+  }
+  
+  log(`💡 候補手選択: ${usiMove}`);
+  
+  // 既存の選択をクリア
+  document.querySelectorAll('.candidate-move.selected').forEach(el => {
+    el.classList.remove('selected');
+  });
+  
+  // 選択した候補手をハイライト
+  const moveEl = document.querySelector(`[data-move="${usiMove}"]`);
+  if (moveEl) {
+    moveEl.classList.add('selected');
+  }
+  
+  // 候補手をクリアしてから指し手を実行
+  updateCandidateMoves([]);
+  
+  // 指し手を実行
+  sendHumanMove(usiMove);
+}
+
+// 候補手の有効/無効切り替え
+function setCandidateMovesEnabled(enabled) {
+  candidateMovesEnabled = enabled;
+  log(`💡 候補手機能: ${enabled ? '有効' : '無効'}`);
+  if (!enabled) {
+    document.getElementById('candidate-moves').innerHTML = '<div class="no-candidates">候補手機能は無効です</div>';
+  }
+}
+
+// 現在の局面から候補手を取得
+function fetchCandidateMoves() {
+  if (!candidateMovesEnabled || !gameState || thinking) return;
+  
+  const payload = {
+    position: 'startpos',
+    moves: gameState.moves || [],
+    current_player: gameState.current_player || 'b'
+  };
+  debugLog('candidate', 'fetchCandidateMoves payload', payload);
+  
+  // CSRFトークンを取得
+  const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+  
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (csrfToken) {
+    headers['X-CSRFToken'] = csrfToken;
+  }
+  
+  fetch('/shogi/api/candidate-moves', {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(payload)
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    debugLog('candidate', 'fetchCandidateMoves response', data);
+    if (data.success) {
+      // 手番情報を保持し、表記生成の基準に使う
+      try { candidateSideOverride = data.current_player || null; } catch(_) { candidateSideOverride = null; }
+      updateCandidateMoves(data.candidate_moves);
+    } else {
+      log(`⚠️ 候補手取得失敗: ${data.error || 'Unknown error'}`);
+      // サーバーエラー時はデモ候補手を表示
+      const demoCandidates = generateDemoCandidates();
+      updateCandidateMoves(demoCandidates);
+    }
+  })
+  .catch(error => {
+    debugLog('candidate', 'fetchCandidateMoves error', { message: error?.message||String(error) });
+    log(`💥 候補手取得エラー: ${error.message || error}`);
+    // ネットワークエラー時はデモ候補手を表示
+    const demoCandidates = generateDemoCandidates();
+    updateCandidateMoves(demoCandidates);
+  });
+}
+
+// デモ用候補手生成（後でサーバーAPIに置き換え）
+function generateDemoCandidates() {
+  if (!gameState || !gameState.moves) return [];
+  
+  const currentPlayer = gameState.current_player || 'b';
+  
+  // 簡単なデモ候補手
+  const demos = [
+    { move: '7g7f', notation: '▲７六歩', eval: 15 },
+    { move: '2g2f', notation: '▲２六歩', eval: 8 },
+    { move: '6g6f', notation: '▲６六歩', eval: 5 },
+    { move: '1g1f', notation: '▲１六歩', eval: -2 },
+    { move: '9g9f', notation: '▲９六歩', eval: -5 }
+  ];
+  
+  return demos.slice(0, 3); // 上位3手のみ表示
+}
+
 let ws = null;
 let gameState = null;
 let selectedSquare = null;
@@ -182,7 +423,10 @@ let lastHandsSnapshot = null;
 let queuedMove = null; // 対局未開始/制御権未取得時に一手をキュー
 // エンジンbestmoveの重複適用防止（engine生ログ/イベントの両経路で統一）
 let lastEngineApplied = null; // 最後に適用したエンジン手の {move, ply} 複合キー
-let currentGamePly = 0; // 現在の手数（humanMove・bestmove両方でカウント）
+// エンジン手のフォールバック適用をデバウンス（game:bestmove が来る前に二重適用しない）
+let pendingEngineMoveTimer = null;
+let pendingEngineMove = null;
+let currentGamePly = 0; // デバッグ用途。実際の重複回避は gameState.moves 長から算出
 
 const CELL_SIZE = 45;
 const BOARD_SIZE = CELL_SIZE * 9;
@@ -192,6 +436,53 @@ const BOARD_OFFSET_Y = LABEL_MARGIN;
 let svgBoardInitialized = false;
 
 window.addEventListener('DOMContentLoaded', () => {
+  // Initialize debug UI if enabled
+  try {
+    if (debugEnabled) {
+      const panel = document.getElementById('debug-panel');
+      if (panel) {
+        panel.style.display = '';
+        panel.querySelectorAll('input[data-dcat]').forEach((cb)=>{
+          const cat = cb.getAttribute('data-dcat');
+          cb.checked = !!debugCategories[cat];
+          cb.addEventListener('change', (e)=> setDebugCategory(cat, e.target.checked));
+        });
+        const dumpBtn = document.getElementById('btn-dump-state');
+        if (dumpBtn) dumpBtn.addEventListener('click', ()=>{
+          try{
+            const snapshot = {
+              gameState: { moves: (gameState?.moves||[]).slice(-16), len: (gameState?.moves||[]).length, current_player: gameState?.current_player },
+              board: { size: [boardState?.[0]?.length||9, boardState?.length||9] },
+              lastEngineApplied,
+              kifTail: kifMoves.slice(-16),
+              candidates: candidateMoves
+            };
+            debugLog('state', 'Dump snapshot', snapshot);
+          }catch(e){ log('Dump failed: '+e); }
+        });
+        const copyBtn = document.getElementById('btn-copy-log');
+        if (copyBtn) copyBtn.addEventListener('click', async ()=>{
+          try{ await navigator.clipboard.writeText(document.getElementById('log').textContent||''); toast('ログをクリップボードにコピーしました', true); }catch(e){ toast('コピーに失敗: '+e, false); }
+        });
+        const candBtn = document.getElementById('btn-fetch-cands');
+        if (candBtn) candBtn.addEventListener('click', ()=> fetchCandidateMoves());
+      }
+      // Inject a toggle button into controls
+      const controls = document.querySelector('.controls');
+      if (controls) {
+        const btn = document.createElement('button');
+        btn.className = 'secondary';
+        btn.id = 'btn-debug-toggle';
+        btn.textContent = 'Debug表示切替';
+        btn.addEventListener('click', ()=>{
+          const p = document.getElementById('debug-panel');
+          if (!p) return; p.style.display = (p.style.display==='none'?'':(p.style.display===''?'none':'none'));
+        });
+        controls.appendChild(btn);
+      }
+      log('🐞 Debug mode enabled');
+    }
+  } catch(_) {}
   // 自動開始の二重防止フラグ
   window.__AUTO_STARTED__ = false;
   const btnResign = document.getElementById('btn-resign');
@@ -210,6 +501,7 @@ window.addEventListener('DOMContentLoaded', () => {
       window.Bridge.connect();
       window.Bridge.on('open', ()=>{
         updateStatus('水匠に接続しました', 'connected');
+        debugLog('ws','Bridge open');
         hasControl=true; setBoardEnabled(true);
         try{ sendObj({type:'takeControl'}); }catch(e){}
   // 既存挙動: 接続直後に一度だけ自動で対局開始（AI自動着手はサーバ側でmovetimeにより発火）
@@ -222,18 +514,31 @@ window.addEventListener('DOMContentLoaded', () => {
   window.Bridge.on('engineMove', (mv)=>{ try{
         // 通信ログにbestmoveのUSIも明記
         try { log(`🔍 Bridge engineMove: ${mv}, lastEngineApplied=${JSON.stringify(lastEngineApplied)}`); } catch(_){ }
+        debugLog('ws','engineMove raw', { mv });
         // フロント受信テスト用（DevTools Consoleでも確認可能）
         if (typeof window !== 'undefined') {
           window.debugLastEngineMove = mv;
           window.debugGamePly = currentGamePly;
         }
-        handleMessage({ type:'game', event:'bestmove', move: mv, lastMove: mv, state: gameState });
+        // サーバからの正式な game:bestmove を優先。短時間だけフォールバックを保留し、
+        // それが来なかった場合に限り適用する（デバウンス）。
+        if (pendingEngineMoveTimer) { try { clearTimeout(pendingEngineMoveTimer); } catch(_) {} pendingEngineMoveTimer = null; }
+        pendingEngineMove = mv;
+        pendingEngineMoveTimer = setTimeout(() => {
+          pendingEngineMoveTimer = null;
+          const m = pendingEngineMove; pendingEngineMove = null;
+          if (m) {
+            debugLog('ws','engineMove fallback apply', { mv: m });
+            handleMessage({ type:'game', event:'bestmove', move: m, lastMove: m });
+          }
+        }, 180);
       }catch(e){} });
       window.Bridge.on('error', fwd);
       window.Bridge.on('parsed', fwd);
       window.Bridge.on('message', fwd);
       window.Bridge.on('close', ()=>{
         updateStatus('接続が切断されました', 'error');
+        debugLog('ws','Bridge close');
         hasControl=false; gameReady=false; lastLocalMove=null; thinking=false; setBoardEnabled(false);
       });
       // 既に接続済み（openを取り逃した）場合のフォロー
@@ -247,6 +552,16 @@ window.addEventListener('DOMContentLoaded', () => {
 function markThinking(v){ 
   thinking = v; 
   setBoardEnabled(!v && hasControl && gameReady);
+  
+  // 候補手表示の制御
+  setCandidateMovesEnabled(!v && hasControl && gameReady);
+  if (v) {
+    // 思考開始時に候補手をクリア
+    updateCandidateMoves([]);
+  } else if (!v && hasControl && gameReady) {
+    // 思考終了時に候補手を更新
+    setTimeout(() => fetchCandidateMoves(), 100);
+  }
   
   const ind = document.getElementById('turn-indicator'); 
   if (!ind) return;
@@ -320,16 +635,34 @@ function usiToKif(usi, side, pieceAt = pieceAtKIF, useDou = true){
   const from = core.slice(0,2);
   const to   = core.slice(2,4);
   const mover = pieceAt(from);
+  try { debugLog('kif','usiToKif.mover', { usi, side, from, to, mover }); } catch(_) {}
   const name  = pieceNameJP(mover);
   const dst   = (useDou && to === lastToSq) ? '同　' : sqToJP(to);
   if (useDou) lastToSq = to;
   return `${turnMark}${dst}${name}${promote ? '成' : ''}`;
 }
-const kifMoves=[]; function pushKif(usi, side){ try{ kifMoves.push(usiToKif(usi, side, pieceAtKIF)); }catch{} }
+const kifMoves=[];
+function pushKif(usi, side, pieceAtOverride){
+  try{
+    const text = usiToKif(usi, side, pieceAtOverride || pieceAtKIF);
+    kifMoves.push(text);
+  }catch{}
+}
 function exportKI2(){ return kifMoves.join(' '); } function exportKIF(){ return kifMoves.map((m,i)=> `${String(i+1).padStart(3,' ')} ${m}`).join('\n'); }
 
 function cloneBoardState(){ try{ return boardState.map(row=>row.slice()); }catch{ return createStartpos(); } }
-function pieceAtFromBoard(board, sq){ const {x,y}=usiSqToXY(sq); const code=board[y]&&board[y][x]; if(!code) return null; const promoted=String(code).startsWith('+'); const base=String(code).replace('+',''); const pt=base.toUpperCase(); return { type:pt, promoted } }
+function pieceAtFromBoard(board, sq){
+  const {x,y}=usiSqToXY(sq);
+  const code=board[y]&&board[y][x];
+  if(!code) return null;
+  const promoted=String(code).startsWith('+');
+  const base=String(code).replace('+','');
+  const pt=base.toUpperCase();
+  const side = (String(code)===String(code).toUpperCase()) ? 'b' : 'w';
+  const out = { type:pt, promoted, side };
+  try { debugLog('kif','pieceAtFromBoard', { sq, code, out }); } catch(_) {}
+  return out;
+}
 function applyMoveToBoardSim(board, usi, side){ try { if (usi.includes('*')){ const letter=usi[0]; const targetSq=usi.slice(2,4); const {x,y}=usiSqToXY(targetSq); const place = side==='b' ? letter.toUpperCase() : letter.toLowerCase(); board[y][x]=place; return true; } else { const fromSq=usi.slice(0,2); const toSq=usi.slice(2,4); const promote=usi.endsWith('+'); const from=usiSqToXY(fromSq); const to=usiSqToXY(toSq); let piece=board[from.y][from.x]; if(!piece) return false; if (promote) piece = '+'+String(piece).replace('+',''); board[to.y][to.x]=piece; board[from.y][from.x]=null; return true; } } catch { return false; } }
 function formatNps(n){ if(typeof n!=='number') return ''; if(n>=1_000_000) return (n/1_000_000).toFixed(1).replace(/\.0$/,'')+'M'; if(n>=1_000) return (n/1_000).toFixed(1).replace(/\.0$/,'')+'K'; return String(n); }
 function formatScore(type,val){ if(!type) return ''; if(type==='cp') return (val>=0?'+':'')+val; if(type==='mate') return '#'+val; return `${type}:${val}`; }
@@ -337,7 +670,24 @@ function formatScore(type,val){ if(!type) return ''; if(type==='cp') return (val
 const RANK_NUM={ a:1,b:2,c:3,d:4,e:5,f:6,g:7,h:8,i:9 }; const CSA_PIECE={ P:'FU', L:'KY', N:'KE', S:'GI', G:'KI', B:'KA', R:'HI', K:'OU' }; const CSA_PROMOTED={ P:'TO', L:'NY', N:'NK', S:'NG', B:'UM', R:'RY' };
 function usiSqToCSA(sq){ if(!sq||sq.length<2) return '00'; const f=sq[0]; const r=sq[1]; return `${f}${RANK_NUM[r]||'?'}`; }
 function pieceToCSA(piece){ if(!piece) return '??'; const base=CSA_PIECE[piece.type?.toUpperCase()]||'??'; if(piece.promoted) return CSA_PROMOTED[piece.type?.toUpperCase()]||base; return base; }
-function usiToCSA(usi, side, board){ if (usi.includes('*')){ const pt=usi[0].toUpperCase(); const to=usi.slice(2,4); const piece={ type:pt, promoted:false }; return `00${usiSqToCSA(to)}${pieceToCSA(piece)}`; } const core=usi.endsWith('+')?usi.slice(0,-1):usi; const from=core.slice(0,2); const to=core.slice(2,4); const mover=pieceAtFromBoard(board, from) || {type:'P',promoted:false}; const piece={ type:mover.type, promoted:(mover.promoted || usi.endsWith('+')) }; return `${usiSqToCSA(from)}${usiSqToCSA(to)}${pieceToCSA(piece)}`; }
+function usiToCSA(usi, side, board){
+  if (usi.includes('*')){
+    const pt=usi[0].toUpperCase();
+    const to=usi.slice(2,4);
+    const piece={ type:pt, promoted:false };
+    return `00${usiSqToCSA(to)}${pieceToCSA(piece)}`;
+  }
+  const core=usi.endsWith('+')?usi.slice(0,-1):usi;
+  const from=core.slice(0,2);
+  const to=core.slice(2,4);
+  const mover=pieceAtFromBoard(board, from);
+  if (!mover) {
+    debugLog('csa', 'mover not found for CSA (using ??)', { usi, from, to });
+    return `${usiSqToCSA(from)}${usiSqToCSA(to)}??`;
+  }
+  const piece={ type:mover.type, promoted:(mover.promoted || usi.endsWith('+')) };
+  return `${usiSqToCSA(from)}${usiSqToCSA(to)}${pieceToCSA(piece)}`;
+}
 
 function advantageLabel(cp){ if(cp==null) return ''; if(cp>0) return '先手有利'; if(cp<0) return '後手有利'; return '互角'; }
 function cpAdvantageLabel(cp, sideToMove){ if(cp==null) return ''; const asSente=(sideToMove==='b')?cp:-cp; return advantageLabel(asSente); }
@@ -357,15 +707,41 @@ function isLegalQuick(usi, opts){ const ignoreSession = !!(opts && opts.ignoreSe
 
 function sendHumanMove(usi){
   if(gameInterrupted){ log('⛔ 対局中断中: 指し手無効'); return; }
+  debugLog('move','sendHumanMove called', { usi, hasControl, gameReady, thinking });
+  
+  // 人間の手を指した時に候補手をクリア
+  updateCandidateMoves([]);
+  
   // 共有アダプタ使用時は、未接続や未開始でも Bridge 側が接続・gameNew・go を面倒見る
   if (isAdapter()) {
     const moverSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b';
     try{ lastBoardSnapshot=boardState.map(r=>r.slice()); lastHandsSnapshot={black:{...blackHand}, white:{...whiteHand}}; }catch{}
-  // アダプタ経路でもクライアント側で合法手を弾く（セッション状態ガードは無効化）
-  if(!isLegalQuick(usi, {ignoreSession:true})){ log(`⛔ 非合法(クライアント弾き): ${usi}`); return; }
+    // 事前スナップショットを取得（符号生成は適用前の盤で行う）
+    const simBefore = cloneBoardState();
+    // アダプタ経路でもクライアント側で合法手を弾く（セッション状態ガードは無効化）
+    if(!isLegalQuick(usi, {ignoreSession:true})){ log(`⛔ 非合法(クライアント弾き): ${usi}`); return; }
     if(!applyMoveToBoard(usi, {side:moverSide, optimistic:true})){ log('💥 反映失敗（USI?）'); return; }
-    try{ const kifTxtHuman=usiToKif(usi, moverSide, pieceAtKIF); log(`♟️ ${kifTxtHuman}`); pushKif(usi, moverSide); }catch{}
+  debugLog('move','applied locally (optimistic)', { usi });
+    try{
+      // 移動元の駒から手番を確定（打ち手は moverSide をそのまま使用）
+      const core = usi.endsWith('+') ? usi.slice(0,-1) : usi;
+      const fromSq = usi.includes('*') ? null : core.slice(0,2);
+      let sideForKif = moverSide;
+      if (fromSq){
+        const pa = pieceAtFromBoard(simBefore, fromSq);
+        if (pa && pa.side) sideForKif = pa.side;
+      }
+      const kifTxtHuman=usiToKif(usi, sideForKif, (sq)=>pieceAtFromBoard(simBefore, sq));
+      log(`♟️ ${kifTxtHuman}`);
+  pushKif(usi, sideForKif, (sq)=>pieceAtFromBoard(simBefore, sq));
+    }catch{}
     lastLocalMove=usi;
+    try {
+      if (!gameState) gameState = { moves: [], current_player: 'b' };
+      if (!Array.isArray(gameState.moves)) gameState.moves = [];
+      gameState.moves.push(usi);
+      gameState.current_player = (gameState.current_player === 'b') ? 'w' : 'b';
+    } catch(_) {}
     const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000;
     try { 
       // Bridge-adapterの humanMove は既に movetime_ms を含んでいるが、確実にするため明示的に指定
@@ -391,12 +767,19 @@ function sendHumanMove(usi){
   const moverSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b';
   lastBoardSnapshot=boardState.map(r=>r.slice()); lastHandsSnapshot={black:{...blackHand}, white:{...whiteHand}};
   if(!applyMoveToBoard(usi, {side:moverSide, optimistic:true})){ log('💥 反映失敗（USI?）'); return; }
-  const kifTxtHuman=usiToKif(usi, moverSide, pieceAtKIF); log(`♟️ ${kifTxtHuman}`); pushKif(usi, moverSide); lastLocalMove=usi;
+  const kifTxtHuman=usiToKif(usi, moverSide, (sq)=>pieceAtFromBoard(simBefore, sq)); log(`♟️ ${kifTxtHuman}`); pushKif(usi, moverSide, (sq)=>pieceAtFromBoard(simBefore, sq)); lastLocalMove=usi;
+  try {
+    if (!gameState) gameState = { moves: [], current_player: 'b' };
+    if (!Array.isArray(gameState.moves)) gameState.moves = [];
+    gameState.moves.push(usi);
+    gameState.current_player = (gameState.current_player === 'b') ? 'w' : 'b';
+  } catch(_) {}
   const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000;
   // go送信はサーバ側で自動実行されるため、クライアント側では送信しない（二重送信防止）
   // sendObj({type:'humanMove', move:usi}); const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000; sendObj({type:'send', line:`go movetime ${MOVETIME_MS}`}); log(`⚙️ go movetime ${MOVETIME_MS}`);
   sendObj({type:'humanMove', move:usi, movetime_ms:MOVETIME_MS}); // サーバ側でgoを自動送信
   log(`📡 送信: humanMove ${usi}`);
+  debugLog('move','sent to server (oldWS)', { usi, movetime: MOVETIME_MS });
   currentGamePly++; // 人間手もカウント
   lastEngineApplied = null; // 人間の手を打った後は次のbestmoveを確実に受け入れる
   log(`🔄 humanMove送信後(旧WS): lastEngineApplied=null, ply=${currentGamePly}`);
@@ -414,7 +797,17 @@ function sendHumanMove(usi){
   }, 1200);
 }
 
-function flushQueuedMove(){ if(!queuedMove) return; if(!isConnected()) return; if(!hasControl||!gameReady) return; if(thinking) return; const usi = queuedMove; queuedMove = null; const moverSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; lastBoardSnapshot=boardState.map(r=>r.slice()); lastHandsSnapshot={black:{...blackHand}, white:{...whiteHand}}; if(!isLegalQuick(usi)){ log(`⛔ 非合法(キュー破棄): ${usi}`); return; } if(!applyMoveToBoard(usi, {side:moverSide, optimistic:true})){ log('💥 反映失敗（USI?）'); return; } const kifTxt=usiToKif(usi, moverSide, pieceAtKIF); log(`♟️ ${kifTxt}`); pushKif(usi, moverSide); lastLocalMove=usi; if (isAdapter()) { try { window.Bridge.humanMove(usi); } catch(_) {} } else { sendObj({type:'humanMove', move:usi}); 
+function flushQueuedMove(){ if(!queuedMove) return; if(!isConnected()) return; if(!hasControl||!gameReady) return; if(thinking) return; const usi = queuedMove; queuedMove = null; const moverSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; lastBoardSnapshot=boardState.map(r=>r.slice()); lastHandsSnapshot={black:{...blackHand}, white:{...whiteHand}}; const simBefore = cloneBoardState(); if(!isLegalQuick(usi)){ log(`⛔ 非合法(キュー破棄): ${usi}`); return; } if(!applyMoveToBoard(usi, {side:moverSide, optimistic:true})){ log('💥 反映失敗（USI?）'); return; } 
+  try{
+    const core = usi.endsWith('+') ? usi.slice(0,-1) : usi;
+    const fromSq = usi.includes('*') ? null : core.slice(0,2);
+    let sideForKif = moverSide;
+    if (fromSq){ const pa = pieceAtFromBoard(simBefore, fromSq); if (pa && pa.side) sideForKif = pa.side; }
+    const kifTxt=usiToKif(usi, sideForKif, (sq)=>pieceAtFromBoard(simBefore, sq));
+    log(`♟️ ${kifTxt}`);
+  pushKif(usi, sideForKif, (sq)=>pieceAtFromBoard(simBefore, sq));
+  }catch{}
+  lastLocalMove=usi; if (isAdapter()) { try { window.Bridge.humanMove(usi); } catch(_) {} } else { sendObj({type:'humanMove', move:usi}); 
   // go送信はサーバ側で自動実行されるため、クライアント側では送信しない（二重送信防止）
   // const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000; sendObj({type:'send', line:`go movetime ${MOVETIME_MS}`}); log(`⚙️ go movetime ${MOVETIME_MS}`); 
 } log(`📡 送信: humanMove ${usi}`); markThinking(true); }
@@ -491,6 +884,9 @@ function newGame(){
   try{ resetHands(); }catch(e){}
   try{ resetToStartpos(); }catch(e){}
   try{ if (Array.isArray(kifMoves)) kifMoves.length = 0; lastToSq = null; }catch(e){}
+  // 候補手をクリア
+  candidateMoves = [];
+  updateCandidateMoves([]);
   const MOVETIME_MS=(window.ENGINE_CONFIG && window.ENGINE_CONFIG.movetime_ms) || 2000;
   // 既存仕様: movetime を添えて送信 → サーバ側で position 直後に go を自動送信
   const payload={ type:'gameNew', gameId:'svg-click-game-'+Date.now(), position:'startpos', movetime: MOVETIME_MS, engineStarts: false };
@@ -502,32 +898,16 @@ function newGame(){
 function generateKIF(){ if(!isConnected()){ updateStatus('水匠に接続してください', 'error'); return; } if(!gameState||!gameState.moves||gameState.moves.length===0){ toast('対局データがありません（0手）', false); return; } const gameInfo={ black_player:'人間', white_player:'YaneuraOu NNUE', date:new Date().toISOString().split('T')[0], event:'SVGクリック入力テスト対局' }; const requestId='kif-req-'+Date.now(); sendObj({type:'generateKIF', moves:gameState.moves, gameInfo, requestId}); log('📋 KIF生成リクエスト送信: '+gameState.moves.length+'手'); updateStatus('KIF生成中...', 'info'); }
 
 function handleMessage(data){ lastRxAt=Date.now(); if(hbGuardTimer){ clearTimeout(hbGuardTimer); hbGuardTimer=null; } if (goFallbackTimer) { try{ clearTimeout(goFallbackTimer); }catch{} goFallbackTimer = null; } switch(data.type){ case 'engine': { const raw=data.output||data.line||''; if(!raw) break; if(raw.startsWith('info')){ const tokens=raw.split(/\s+/); let depth=null,nps=null,scoreType=null,scoreVal=null,pvMoves=[]; for(let i=1;i<tokens.length;i++){ const t=tokens[i]; if(t==='depth'&&tokens[i+1]) depth=parseInt(tokens[++i],10); else if(t==='nps'&&tokens[i+1]) nps=parseInt(tokens[++i],10); else if(t==='score'&&tokens[i+2]) { scoreType=tokens[++i]; scoreVal=parseInt(tokens[++i],10);} else if(t==='pv'){ pvMoves=tokens.slice(i+1); break; } } const sideToMove=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; const sim=cloneBoardState(); const pvKif=[]; let side=sideToMove; for(const mv of pvMoves){ try{ const kif=usiToKif(mv, side, (sq)=>pieceAtFromBoard(sim, sq), false); pvKif.push(kif); applyMoveToBoardSim(sim, mv, side); side=(side==='b')?'w':'b'; }catch{} } const parts=[]; if(depth!=null) parts.push(`d${depth}`); const dispScore=(scoreType==='cp'&&typeof scoreVal==='number') ? -scoreVal : scoreVal; if(scoreType) parts.push(`eval ${formatScore(scoreType, dispScore)}`); if(nps!=null) parts.push(`NPS ${formatNps(nps)}`); const head=parts.length?`🧠 ${parts.join(' | ')}`:'🧠'; const tail=pvKif.length?` | PV: ${pvKif.join(' ')}`:''; log(head+tail); try{ const jkf=buildJKFJsonFromInfo(raw); if(jkf && (jkf.move || (jkf.comments&&jkf.comments.length))){ log('JKF: '+JSON.stringify(jkf)); } }catch{} return; } if(raw.startsWith('bestmove')){ const m=raw.match(/bestmove\s+(\S+)/); const mv=m&&m[1]; if(mv && mv!=='resign' && mv!=='win'){ const sideToMove=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; const sim=cloneBoardState(); const kif=usiToKif(mv, sideToMove, (sq)=>pieceAtFromBoard(sim, sq), false); log(`🤖 候補手: ${kif}`);
-        // Fallback: イベント不達時でも盤面を進める（重複防止無効化）
-        // デバッグログ追加
-        log(`🔍 bestmove fallback: mv=${mv}, lastEngineApplied=${lastEngineApplied}, same=${lastEngineApplied === mv}`);
-        // 重複チェックを一時的に無効化
-        // if (lastEngineApplied !== mv) {
-          try {
-            const nextSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b';
-            const moverSide= nextSide==='b' ? 'w' : 'b';
-            const simBefore=cloneBoardState();
-            const kifTxt=usiToKif(mv, moverSide, (sq)=>pieceAtFromBoard(simBefore, sq), true);
-            applyMoveToBoard(mv, {authoritative:true, side:moverSide});
-            log(`🤖 ${kifTxt} (fallback処理)`);
-            pushKif(mv, moverSide);
-          } catch(_) {}
-          lastEngineApplied = mv;
-          lastLocalMove = null;
-          markThinking(false);
-        // } else {
-        //   log(`🤖 bestmove重複スキップ: ${mv}`);
-        // }
+        // 正式な game:bestmove イベントで適用する。ここでは適用しない。
+        log(`🔍 bestmove raw(log) received: ${mv} → waiting for event`);
       } else { log(`🤖 候補手: ${mv || raw}`); } return; } log('🗒️ '+raw); return; }
   case 'pong': return;
   case 'state': try{ restoreFromState(data); }catch(e){ log('restoreFromState失敗: '+e);} return;
-  case 'game': if(data.status==='GAME_OVER'){ markThinking(false); gameReady=false; gameInterrupted=true; setBoardEnabled(false); const reason=(data.result && data.result.reason)||''; const engineWon=(data.result&&(data.result.winner==='engine'||data.result.result==='engine-win')) || reason==='resign'; const who=engineWon?'水匠':'あなた'; const msg=`🏁 終局: ${reason} / 勝者: ${who}`; log(msg); try{ toast(msg, true);}catch{} return; } if(data.event==='new'){ gameState=data.state||{moves:[], current_player:'b'}; hasControl=true; gameReady=true; thinking=false; lastLocalMove=null; lastEngineApplied=null; log('🎮 新規ゲーム開始'); resetHands(); resetToStartpos(); if (gameState.moves&&gameState.moves.length) replayMoves(gameState.moves); setBoardEnabled(hasControl); markThinking(false); flushQueuedMove(); } else if (data.event==='state'){ gameState=data.state||gameState||{moves:[], current_player:'b'}; lastEngineApplied=null; resetHands(); resetToStartpos(); if (gameState.moves&&gameState.moves.length) replayMoves(gameState.moves); gameReady=true; setBoardEnabled(hasControl); markThinking(false); log(`♻️ 状態復元: ${gameState.moves.length||0}手`); flushQueuedMove(); } else if (data.event==='humanMove' || data.event==='human' || data.event==='move'){ gameState=data.state||gameState; const mv=data.lastMove||data.move||data.usi; if(!mv) return; if(mv!==lastLocalMove){ const nextSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; const moverSide= nextSide==='b' ? 'w' : 'b'; const simBefore=cloneBoardState(); const kifTxt=usiToKif(mv, moverSide, (sq)=>pieceAtFromBoard(simBefore, sq), true); applyMoveToBoard(mv, {authoritative:true, side:moverSide}); log(`♟️ ${kifTxt}`); pushKif(mv, moverSide); } } else if (data.event==='bestmove'){ 
+  case 'game': if(data.status==='GAME_OVER'){ markThinking(false); gameReady=false; gameInterrupted=true; setBoardEnabled(false); setCandidateMovesEnabled(false); const reason=(data.result && data.result.reason)||''; const engineWon=(data.result&&(data.result.winner==='engine'||data.result.result==='engine-win')) || reason==='resign'; const who=engineWon?'水匠':'あなた'; const msg=`🏁 終局: ${reason} / 勝者: ${who}`; log(msg); try{ toast(msg, true);}catch{} return; } if(data.event==='new'){ gameState=data.state||{moves:[], current_player:'b'}; hasControl=true; gameReady=true; thinking=false; lastLocalMove=null; lastEngineApplied=null; log('🎮 新規ゲーム開始'); resetHands(); resetToStartpos(); if (gameState.moves&&gameState.moves.length) replayMoves(gameState.moves); setBoardEnabled(hasControl); markThinking(false); flushQueuedMove(); setTimeout(() => fetchCandidateMoves(), 300); } else if (data.event==='state'){ gameState=data.state||gameState||{moves:[], current_player:'b'}; lastEngineApplied=null; resetHands(); resetToStartpos(); if (gameState.moves&&gameState.moves.length) replayMoves(gameState.moves); gameReady=true; setBoardEnabled(hasControl); markThinking(false); log(`♻️ 状態復元: ${gameState.moves.length||0}手`); flushQueuedMove(); setTimeout(() => fetchCandidateMoves(), 300); } else if (data.event==='humanMove' || data.event==='human' || data.event==='move'){ gameState=data.state||gameState; const mv=data.lastMove||data.move||data.usi; if(!mv) return; if(mv!==lastLocalMove){ const simBefore=cloneBoardState(); const core = mv.endsWith('+') ? mv.slice(0,-1) : mv; const fromSq = mv.includes('*') ? null : core.slice(0,2); let sideForKif = (gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; if (fromSq){ const pa = pieceAtFromBoard(simBefore, fromSq); if (pa && pa.side) sideForKif = pa.side; } const kifTxt=usiToKif(mv, sideForKif, (sq)=>pieceAtFromBoard(simBefore, sq), true); applyMoveToBoard(mv, {authoritative:true, side: sideForKif}); log(`♟️ ${kifTxt}`); pushKif(mv, sideForKif, (sq)=>pieceAtFromBoard(simBefore, sq)); } } else if (data.event==='bestmove'){ 
     try { if (goFallbackTimer) { clearTimeout(goFallbackTimer); goFallbackTimer = null; } } catch(_) {}
-    log(`🔍 bestmove event received: mv=${data.lastMove||data.move}, lastEngineApplied=${JSON.stringify(lastEngineApplied)}`);
+    // ペンディングしているフォールバック適用はキャンセル
+    if (pendingEngineMoveTimer) { try { clearTimeout(pendingEngineMoveTimer); } catch(_) {} pendingEngineMoveTimer = null; pendingEngineMove = null; }
+  debugLog('game', 'bestmove event received', { mv: data.lastMove||data.move, lastEngineApplied });
     gameState=data.state||gameState; 
     let mv=data.lastMove||data.move; 
     // bestmove正規化：空文字・resign・win除去、有効性チェック
@@ -538,29 +918,43 @@ function handleMessage(data){ lastRxAt=Date.now(); if(hbGuardTimer){ clearTimeou
       mv = null;
     }
     if(mv){ 
-      currentGamePly++; // エンジン手もカウント
-      const moveKey = {move: mv, ply: currentGamePly};
-      
+      const plyFromMoves = (gameState && Array.isArray(gameState.moves)) ? gameState.moves.length + 1 : (currentGamePly + 1);
+      const moveKey = {move: mv, ply: plyFromMoves};
       // 重複チェック：同じ手かつ同じ手数なら適用済み
-      if (lastEngineApplied && lastEngineApplied.move === mv && lastEngineApplied.ply === currentGamePly) {
-        log(`🤖 bestmove重複スキップ: ${mv} (ply=${currentGamePly})`);
+      if (lastEngineApplied && lastEngineApplied.move === mv && lastEngineApplied.ply === plyFromMoves) {
+        debugLog('game', 'bestmove duplicate skip', { mv, ply: plyFromMoves });
         return;
       }
-      
-      // 重複チェックを一時的に無効化してテスト
-      const nextSide=(gameState&&(gameState.current_player||gameState.currentPlayer))||'b'; 
-      const moverSide= nextSide==='b' ? 'w' : 'b'; 
-      const simBefore=cloneBoardState(); 
-      const kifTxt=usiToKif(mv, moverSide, (sq)=>pieceAtFromBoard(simBefore, sq), true); 
-      applyMoveToBoard(mv, {authoritative:true, side:moverSide}); 
-      log(`🤖 ${kifTxt} (ply=${currentGamePly})`); 
-      pushKif(mv, moverSide); 
+  const simBefore=cloneBoardState(); 
+  const core = mv.endsWith('+') ? mv.slice(0,-1) : mv;
+  const fromSq = mv.includes('*') ? null : core.slice(0,2);
+  let sideForKif = (gameState&&(gameState.current_player||gameState.currentPlayer))||'b';
+  if (fromSq){ const pa = pieceAtFromBoard(simBefore, fromSq); if (pa && pa.side) sideForKif = pa.side; }
+  const kifTxt=usiToKif(mv, sideForKif, (sq)=>pieceAtFromBoard(simBefore, sq), true); 
+  applyMoveToBoard(mv, {authoritative:true, side: sideForKif}); 
+  log(`🤖 ${kifTxt} (ply=${plyFromMoves})`); 
+  debugLog('move','applied engine bestmove', { mv, ply: plyFromMoves });
+  pushKif(mv, sideForKif, (sq)=>pieceAtFromBoard(simBefore, sq));
+      try {
+        if (!gameState) gameState = { moves: [], current_player: 'b' };
+        if (!Array.isArray(gameState.moves)) gameState.moves = [];
+        gameState.moves.push(mv);
+        gameState.current_player = (gameState.current_player === 'b') ? 'w' : 'b';
+      } catch(_) {}
       lastEngineApplied = moveKey; // 適用成功後に記録
     } else { 
-      log('🤖 bestmove無効またはresign/win'); 
+  log('🤖 bestmove無効またはresign/win'); 
+  debugLog('game','bestmove invalid', { mvRaw: data.lastMove||data.move });
     } 
     lastLocalMove=null; 
     markThinking(false); 
+    // bestmove後に候補手を更新（少し遅延を置いて確実に）
+    setTimeout(() => {
+      if (!thinking && hasControl && gameReady) {
+        debugLog('candidate','post-bestmove fetch');
+        fetchCandidateMoves();
+      }
+    }, 500);
 } break;
   case 'error': log(`💥 エラー [${data.code}]: ${data.message}`); updateStatus(`エラー: ${data.code}`, 'error'); if(data.code==='NOT_CONTROLLER'){ hasControl=false; setBoardEnabled(false); log('⚠ NOT_CONTROLLER → 再要求'); try{ sendObj({type:'takeControl'}); }catch(e){} 
     // 楽観的に制御権を立ててフラッシュ（サーバ側で拒否される場合は再度NOT_CONTROLLERが返る）
@@ -570,13 +964,21 @@ function handleMessage(data){ lastRxAt=Date.now(); if(hbGuardTimer){ clearTimeou
   default: log('📨 受信: '+JSON.stringify(data, null, 2)); }
 }
 
-function restoreFromState(snap){ if(!snap) return; const moves=snap.moves||[]; const side=snap.side_to_move||'b'; gameState={ moves:moves.slice(), current_player: side }; resetHands(); resetToStartpos(); if(moves.length) replayMoves(moves); gameReady=!!snap.in_game || moves.length>0; setBoardEnabled(hasControl); markThinking(false); log(`♻️ 状態復元(state): ${moves.length}手 / 手番=${side}`); }
+function restoreFromState(snap){ if(!snap) return; const moves=snap.moves||[]; const side=snap.side_to_move||'b'; gameState={ moves:moves.slice(), current_player: side }; resetHands(); resetToStartpos(); if(moves.length) replayMoves(moves); gameReady=!!snap.in_game || moves.length>0; setBoardEnabled(hasControl); markThinking(false); 
+  // 状態復元後に候補手を更新
+  setTimeout(() => fetchCandidateMoves(), 200);
+  log(`♻️ 状態復元(state): ${moves.length}手 / 手番=${side}`); 
+  debugLog('state','restored from state', { len: moves.length, side });
+}
 
 function applyMoveToBoard(usi, opts={}){ if(!usi) return false; const optimistic=!!opts.optimistic; log(`🔄 盤面反映: ${usi}${optimistic?' (optimistic)':''}`); try{ if(usi.includes('*')){ const letter=usi[0]; const targetSq=usi.slice(2,4); const {x,y}=usiSqToXY(targetSq); if(boardState[y][x]){ log('⚠️ 打ち先に駒があります: '+targetSq); return false; } const sideDetected=opts.side || (gameState&&(gameState.current_player||gameState.currentPlayer)) || 'b'; const piecePlaced= sideDetected==='b' ? letter.toUpperCase() : letter.toLowerCase(); boardState[y][x]=piecePlaced; useHandPieceForDrop(letter, sideDetected); const pieceText=document.getElementById(`piece-${x}-${y}`); if(pieceText){ pieceText.textContent=pieceNames[piecePlaced]||piecePlaced; pieceText.style.fill= piecePlaced===piecePlaced.toUpperCase()? '#000':'#c00'; pieceText.setAttribute('data-piece', piecePlaced); setPieceOrientation(pieceText, piecePlaced); } else { const svg=document.getElementById('shogi-board'); const text=document.createElementNS('http://www.w3.org/2000/svg','text'); text.setAttribute('x', BOARD_OFFSET_X + x * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('y', BOARD_OFFSET_Y + y * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('text-anchor','middle'); text.setAttribute('alignment-baseline','middle'); text.setAttribute('font-size','18'); text.setAttribute('font-weight','bold'); text.classList.add('piece-text'); text.setAttribute('data-file', x); text.setAttribute('data-rank', y); text.setAttribute('id', `piece-${x}-${y}`); text.setAttribute('data-piece', piecePlaced); text.textContent=pieceNames[piecePlaced]||piecePlaced; text.style.fill= piecePlaced===piecePlaced.toUpperCase()? '#000':'#c00'; setPieceOrientation(text, piecePlaced); svg.appendChild(text); } } else { const fromSq=usi.slice(0,2); const toSq=usi.slice(2,4); const promote=usi.endsWith('+'); const from=usiSqToXY(fromSq); const to=usiSqToXY(toSq); let piece=boardState[from.y][from.x]; if(!piece){ log(`⚠️ 移動元が空: ${fromSq}`); return false; } let captured=boardState[to.y][to.x]; if(promote){ piece='+'+piece.replace('+',''); } boardState[to.y][to.x]=piece; boardState[from.y][from.x]=null; const fromPieceText=document.getElementById(`piece-${from.x}-${from.y}`); if(fromPieceText) fromPieceText.remove(); const toPieceText=document.getElementById(`piece-${to.x}-${to.y}`); if(captured){ addCaptureToHand(captured); }
     if(toPieceText){ toPieceText.textContent=pieceNames[piece]||piece; toPieceText.style.fill= piece.toLowerCase()===piece? '#c00':'#000'; toPieceText.setAttribute('data-piece', piece); setPieceOrientation(toPieceText, piece); } else { const svg=document.getElementById('shogi-board'); const text=document.createElementNS('http://www.w3.org/2000/svg','text'); text.setAttribute('x', BOARD_OFFSET_X + to.x * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('y', BOARD_OFFSET_Y + to.y * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('text-anchor','middle'); text.setAttribute('alignment-baseline','middle'); text.setAttribute('font-size','18'); text.setAttribute('font-weight','bold'); text.classList.add('piece-text'); text.setAttribute('data-file', to.x); text.setAttribute('data-rank', to.y); text.setAttribute('id', `piece-${to.x}-${to.y}`); text.setAttribute('data-piece', piece); text.textContent=pieceNames[piece]||piece; text.style.fill= piece.toLowerCase()===piece? '#c00':'#000'; setPieceOrientation(text, piece); svg.appendChild(text); }
   } return true; } catch(e){ log(`💥 applyMoveToBoard失敗: ${e}`); return false; } }
 
-function resetToStartpos(){ boardState=createStartpos(); document.querySelectorAll('.piece-text').forEach(el=>el.remove()); const svg=document.getElementById('shogi-board'); for(let rank=0;rank<9;rank++){ for(let file=0;file<9;file++){ const piece=boardState[rank][file]; if(piece){ const text=document.createElementNS('http://www.w3.org/2000/svg','text'); text.setAttribute('x', BOARD_OFFSET_X + file * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('y', BOARD_OFFSET_Y + rank * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('text-anchor','middle'); text.setAttribute('alignment-baseline','middle'); text.setAttribute('font-size','18'); text.setAttribute('font-weight','bold'); text.classList.add('piece-text'); text.setAttribute('data-file', file); text.setAttribute('data-rank', rank); text.setAttribute('id', `piece-${file}-${rank}`); text.textContent=pieceNames[piece]||piece; text.style.fill= piece===piece.toUpperCase()? '#000':'#c00'; setPieceOrientation(text, piece); svg.appendChild(text); } } } log('🔄 盤面リセット完了'); }
+function resetToStartpos(){ boardState=createStartpos(); document.querySelectorAll('.piece-text').forEach(el=>el.remove()); const svg=document.getElementById('shogi-board'); for(let rank=0;rank<9;rank++){ for(let file=0;file<9;file++){ const piece=boardState[rank][file]; if(piece){ const text=document.createElementNS('http://www.w3.org/2000/svg','text'); text.setAttribute('x', BOARD_OFFSET_X + file * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('y', BOARD_OFFSET_Y + rank * CELL_SIZE + CELL_SIZE / 2); text.setAttribute('text-anchor','middle'); text.setAttribute('alignment-baseline','middle'); text.setAttribute('font-size','18'); text.setAttribute('font-weight','bold'); text.classList.add('piece-text'); text.setAttribute('data-file', file); text.setAttribute('data-rank', rank); text.setAttribute('id', `piece-${file}-${rank}`); text.textContent=pieceNames[piece]||piece; text.style.fill= piece===piece.toUpperCase()? '#000':'#c00'; setPieceOrientation(text, piece); svg.appendChild(text); } } } 
+  // 盤面リセット時に候補手もクリア
+  updateCandidateMoves([]);
+  log('🔄 盤面リセット完了'); }
 function replayMoves(moves){ if(!moves||moves.length===0) return; log(`🔄 手順再生: ${moves.length}手`); moves.forEach((mv,i)=>{ log(`  ${i+1}手目: ${mv}`); applyMoveToBoard(mv); }); }
 function displayKIF(kifContent){ const w=window.open('', '_blank', 'width=600,height=400'); w.document.write(`<html><head><title>生成されたKIF</title></head><body style="font-family: monospace; white-space: pre; padding: 20px;">${kifContent}</body></html>`); }
 function updateStatus(message,type){ const el=document.getElementById('status'); el.textContent=message; el.className='status '+type; }
@@ -586,6 +988,16 @@ function toast(message,isSuccess=true){ const sEl=document.getElementById('statu
 function clearSelection(){ if(selectedSquare){ selectedSquare.square.classList.remove('selected'); selectedSquare=null; } if(selectedDropPiece){ const pieceEl=document.querySelector(`[data-piece="${selectedDropPiece}"].selected`); if(pieceEl) pieceEl.classList.remove('selected'); selectedDropPiece=null; } document.querySelectorAll('.square.possible').forEach(sq=>sq.classList.remove('possible')); legalTargets.clear(); }
 document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ clearSelection(); document.getElementById('promotionModal').style.display='none'; if(pendingMove){ log('成り選択キャンセル'); pendingMove=null; } } });
 window.onload=function(){ boardState=createStartpos(); initSVGBoard(); updateKomadaiDisplay(); log('🎌 SVG将棋盤クリック入力システム起動（駒台対応）'); updateStatus('自動接続中...', 'info'); };
+
+// 軽量デバッグ: 棋譜の更新状況をコンソールから確認するためのヘルパ
+try {
+  window.getMovesDebug = function(){
+    try{
+      const ms = (gameState && Array.isArray(gameState.moves)) ? gameState.moves : [];
+      return { count: ms.length, last: ms.slice(-5), current_player: (gameState && gameState.current_player) || 'b' };
+    } catch(e){ return { error: String(e) } }
+  };
+} catch(_) {}
 </script>
 </body>
 </html>

@@ -72,7 +72,7 @@ except Exception as e:
 
 # Configuration
 DEFAULT_CONFIG = {
-    "EvalDir": "C:\\shogi\\engines\\suisho\\eval",
+    "EvalDir": "<internal>",  # 内部評価を使用
     "FV_SCALE": 24,
     "Threads": 6,
     "USI_Hash": 1024,

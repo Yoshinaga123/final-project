@@ -8,11 +8,11 @@ create_app関数が定義されています。
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, g
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_mail import Mail
 from flask_migrate import Migrate
-from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_wtf.csrf import CSRFProtect, generate_csrf, CSRFError
 from dotenv import load_dotenv
 
 # 環境変数の読み込み
@@ -66,6 +66,20 @@ def create_app(config_name=None):
     csrf.exempt('debugtoolbar.sql_select')
     csrf.exempt('debugtoolbar.sql_explain')
     
+    # ブループリント登録
+    register_blueprints(app)
+    
+    # 将棋候補手APIをCSRF保護から除外（ブループリント登録後）
+    # 文字列のエンドポイント名ではなく、実際のビュー関数を渡す
+    try:
+        from apps.shogi.routes import get_candidate_moves  # 遅延インポートで循環を回避
+        csrf.exempt(get_candidate_moves)
+    except Exception as e:
+        app.logger.warning(f"Failed to exempt CSRF for candidate-moves: {e}")
+    
+    # 拡張機能の初期化
+    register_extensions(app)
+    
     # Jinja から csrf_token() を利用可能にし、HTMX 用 <meta name="csrf-token"> を確実に生成
     @app.context_processor
     def inject_csrf_token():
@@ -77,13 +91,7 @@ def create_app(config_name=None):
         if request.endpoint == 'static':
             return None
     
-    # ユーザーローダー関数はmodel.pyで定義済み
-    
-    # ブループリントの登録
-    register_blueprints(app)
-    
-    # 拡張機能の初期化
-    register_extensions(app)
+    # ユーザーローダー関数はmodel.py で定義済み
     
     # ログ設定（早めに初期化して以降のログを残す）
     configure_logging(app)
@@ -220,6 +228,19 @@ def register_routes(app):
 
 def register_error_handlers(app):
     """エラーハンドラーを登録"""
+    
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(error):
+        # CSRFエラーは 400/403 として扱い、API には JSON を返す
+        app.logger.warning(f'CSRFError: {error}')
+        # API パスなら JSON で返す
+        try:
+            from flask import jsonify
+            if request.path.startswith('/shogi/api/') or request.accept_mimetypes.best == 'application/json':
+                return jsonify({'success': False, 'error': 'CSRF token missing or invalid'}), 400
+        except Exception:
+            pass
+        return render_template('error_pages/403.html'), 403
     
     @app.errorhandler(404)
     def error_404(error):
