@@ -56,9 +56,15 @@ def _start_bridge_if_needed():
     if code == 200:
         print("[DEBUG] Bridge already running")
         return None  # already running
+    
+    # Get engine path from environment, fallback to mock engine
+    engine_path = os.getenv("USI_ENGINE_PATH", "tools\\mock_engine\\mock_engine.bat")
+    print(f"[DEBUG] Using engine path: {engine_path}")
+    
     # run-bridge.ps1 (Engine/Script は .env で解決)
     cmd = [
         PS_EXE, "-ExecutionPolicy", "Bypass", "-File", ".\\scripts\\run-bridge.ps1",
+        "-Engine", engine_path,
         "-Port", str(BRIDGE_PORT), "-Token", TOKEN, "-ReadyTimeoutSec", "20",
     ]
     print(f"[DEBUG] Starting bridge with command: {' '.join(cmd)}")
