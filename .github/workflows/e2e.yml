@@ -35,10 +35,12 @@ jobs:
       - name: Prepare .env for E2E
         shell: pwsh
         run: |
-          $engine = Join-Path $pwd "tools\mock_engine\mock_engine.bat"
+          # Prefer the Python script directly to avoid cmd/batch shims
+          $engine = Join-Path $pwd "tools\mock_engine\mock_usi.py"
           if (-not (Test-Path $engine)) {
             Write-Host "[ERROR] mock engine not found at: $engine"
-            Get-ChildItem -Recurse -Filter "mock_engine.bat" . | % { Write-Host "Found: $($_.FullName)" }
+            Write-Host "[DEBUG] Searching for mock engine files recursively:"
+            Get-ChildItem -Recurse -Include "mock_usi.py","mock_engine.bat" . | % { Write-Host "Found: $($_.FullName)" }
             throw "MOCK_ENGINE_MISSING"
           }
           Write-Host "[DEBUG] Using engine: $engine"
@@ -70,6 +72,34 @@ USI_EVAL_DIR=$(Split-Path $engine -Parent)
             Write-Host "Resolved USI_ENGINE_PATH=$enginePath"
             if (-not (Test-Path $enginePath)) { throw "ENGINE_PATH_NOT_FOUND: $enginePath" }
           }
+
+      - name: Smoke test mock engine (usi handshake)
+        shell: pwsh
+        run: |
+          $enginePath = ((Get-Content ".\\.env" | Where-Object { $_ -like 'USI_ENGINE_PATH=*' } | Select-Object -First 1).Split('=',2))[1]
+          Write-Host "[DEBUG] Smoke-testing engine: $enginePath"
+          $py = (Get-Command python -ErrorAction SilentlyContinue)
+          if (-not $py) { throw "PYTHON_NOT_FOUND in PATH" }
+          $cmd = @('python','-u', $enginePath)
+          $psi = New-Object System.Diagnostics.ProcessStartInfo
+          $psi.FileName = $cmd[0]
+          $psi.Arguments = ($cmd[1..($cmd.Length-1)] -join ' ')
+          $psi.RedirectStandardInput = $true
+          $psi.RedirectStandardOutput = $true
+          $psi.RedirectStandardError = $true
+          $psi.UseShellExecute = $false
+          $p = New-Object System.Diagnostics.Process
+          $p.StartInfo = $psi
+          [void]$p.Start()
+          $p.StandardInput.WriteLine('usi')
+          $p.StandardInput.WriteLine('quit')
+          $p.StandardInput.Flush()
+          $out = $p.StandardOutput.ReadToEnd()
+          $err = $p.StandardError.ReadToEnd()
+          $p.WaitForExit()
+          Write-Host "[ENGINE STDOUT]"; Write-Host $out
+          if ($err) { Write-Host "[ENGINE STDERR]"; Write-Host $err }
+          if ($out -notmatch 'usiok') { throw "MOCK_ENGINE_HANDSHAKE_FAILED" }
 
       - name: Run E2E
         run: |
