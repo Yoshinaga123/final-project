@@ -9,7 +9,11 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 from flask import Flask, render_template, request, redirect, url_for
-from flask_debugtoolbar import DebugToolbarExtension
+# Debug toolbar is optional; import lazily to avoid hard dependency
+try:
+    from flask_debugtoolbar import DebugToolbarExtension
+except Exception:  # package not installed or incompatible
+    DebugToolbarExtension = None  # type: ignore
 from flask_mail import Mail
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect, generate_csrf
@@ -25,18 +29,18 @@ from apps.models import db, login_manager
 def create_app(config_name=None):
     """
     アプリケーションファクトリ
-    
+
     Args:
         config_name (str): 使用する設定名（development, production, testing）
-    
+
     Returns:
         Flask: 設定済みのFlaskアプリケーションインスタンス
     """
-    app = Flask(__name__, 
+    app = Flask(__name__,
                 template_folder='apps/templates',
                 static_folder='apps/static',
                 static_url_path='/static')
-    
+
     # 設定の読み込み
     from config import config
     config_name = config_name or os.environ.get('FLASK_CONFIG') or 'default'
@@ -45,27 +49,27 @@ def create_app(config_name=None):
     # SECRET_KEY 警告（本番でデフォルトキーならログ警告）
     if app.config.get('SECRET_KEY', '').startswith('dev-secret-key'):
         app.logger.warning('SECURITY: SECRET_KEY is using development default. Set a strong SECRET_KEY for production.')
-    
+
     # データベースの初期化
     db.init_app(app)
-    
+
     # Flask-Migrateの初期化
     migrate = Migrate(app, db)
-    
+
     # Flask-Loginの初期化
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'ログインが必要です。'
     login_manager.login_message_category = 'info'
-    
+
     # CSRF保護の初期化
     csrf = CSRFProtect(app)
-    
+
     # CSRF保護の除外設定
     csrf.exempt('debugtoolbar.template_preview')
     csrf.exempt('debugtoolbar.sql_select')
     csrf.exempt('debugtoolbar.sql_explain')
-    
+
     # Jinja から csrf_token() を利用可能にし、HTMX 用 <meta name="csrf-token"> を確実に生成
     @app.context_processor
     def inject_csrf_token():
@@ -76,24 +80,24 @@ def create_app(config_name=None):
     def exempt_static():
         if request.endpoint == 'static':
             return None
-    
+
     # ユーザーローダー関数はmodel.pyで定義済み
-    
+
     # ブループリントの登録
     register_blueprints(app)
-    
+
     # 拡張機能の初期化
     register_extensions(app)
-    
+
     # ログ設定（早めに初期化して以降のログを残す）
     configure_logging(app)
-    
+
     # ルートの登録
     register_routes(app)
-    
+
     # エラーハンドラーの登録
     register_error_handlers(app)
-    
+
     # USIブリッジの自動起動（任意） - Flask 3.x 対応（before_first_request は廃止）
     try:
         if app.config.get('USI_AUTOSTART', False):
@@ -122,7 +126,7 @@ def register_blueprints(app):
     from apps.shogi import shogi_bp, bp as shogi_usi_bp  # 新しいUSI Bridge Blueprint
     from apps.shogi.routes import engine_bp
     from apps.detector import detector_bp
-    
+
     # ルートをインポート（ブループリントのエンドポイントを登録するため）
     from apps.auth import routes as auth_routes  # noqa: F401
     from apps.admin import routes as admin_routes  # noqa: F401
@@ -130,7 +134,7 @@ def register_blueprints(app):
     from apps.contact import routes as contact_routes  # noqa: F401
     from apps.shogi import routes as shogi_routes  # noqa: F401
     from apps.detector import routes as detector_routes  # noqa: F401
-    
+
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(crud_bp, url_prefix='/crud')
@@ -145,10 +149,10 @@ def register_extensions(app):
     """拡張機能を初期化"""
     # デバッグツールバー（明示有効化時のみ）。UIのjQueryと競合するため既定OFF
     # 有効化する場合は環境変数 ENABLE_DEBUG_TOOLBAR=1 を設定
-    if app.debug and os.getenv('ENABLE_DEBUG_TOOLBAR') == '1':
+    if app.debug and os.getenv('ENABLE_DEBUG_TOOLBAR') == '1' and DebugToolbarExtension is not None:
         toolbar = DebugToolbarExtension(app)
         app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
-    
+
     # メール
     mail = Mail(app)
     app.mail = mail
@@ -190,7 +194,7 @@ def configure_logging(app):
 
 def register_routes(app):
     """ルートを登録"""
-    
+
     @app.route("/")
     def index():
         """ルートアクセス処理"""
@@ -210,7 +214,7 @@ def register_routes(app):
         """アップロードされた画像を配信（検知用）"""
         from flask import send_from_directory
         return send_from_directory(app.config['DETECTOR_UPLOAD_FOLDER'], filename)
-    
+
     @app.route('/images/<filename>')
     def images_file(filename):
         """画像ファイルを配信（UPLOAD_FOLDERから）"""
@@ -220,7 +224,7 @@ def register_routes(app):
 
 def register_error_handlers(app):
     """エラーハンドラーを登録"""
-    
+
     @app.errorhandler(404)
     def error_404(error):
         # 静的ファイルやデバッグツールバーの404はログレベルを下げる
@@ -229,17 +233,17 @@ def register_error_handlers(app):
         else:
             app.logger.warning(f'404 Error: {error}')
         return render_template('error_pages/404.html'), 404
-    
+
     @app.errorhandler(403)
     def error_403(error):
         app.logger.warning(f'403 Error: {error}')
         return render_template('error_pages/403.html'), 403
-    
+
     @app.errorhandler(500)
     def error_500(error):
         app.logger.error(f'500 Error: {error}')
         return render_template('error_pages/500.html'), 500
-    
+
     @app.errorhandler(Exception)
     def handle_exception(error):
         import traceback
@@ -258,6 +262,3 @@ try:
         attachment_data = f.read()
 except FileNotFoundError:
     attachment_data = None
-
-
-
