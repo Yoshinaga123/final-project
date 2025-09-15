@@ -30,6 +30,7 @@ jobs:
           echo POWERSHELL_EXE=$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe>> $env:GITHUB_ENV
           echo PYTEST_USE_FLASK=0>> $env:GITHUB_ENV
           echo USI_ENGINE_PATH=tools\mock_engine\mock_engine.bat>> $env:GITHUB_ENV
+          echo PYTHON_EXE=python>> $env:GITHUB_ENV
       - name: Run E2E
         run: |
           pytest -q tests/test_engine_e2e.py

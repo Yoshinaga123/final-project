@@ -65,13 +65,16 @@ def _start_bridge_if_needed():
     try:
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
         print(f"[DEBUG] Bridge process started with PID: {proc.pid}")
-        # Give it a moment to start
-        time.sleep(2)
+        # Give it more time to start and capture output
+        time.sleep(5)
         if proc.poll() is not None:
             stdout, _ = proc.communicate()
             print(f"[DEBUG] Bridge process exited early with code {proc.returncode}")
             print(f"[DEBUG] Bridge output: {stdout}")
-        return proc
+            return None
+        else:
+            print("[DEBUG] Bridge process still running after 5s, checking health")
+            return proc
     except Exception as e:
         print(f"[DEBUG] Failed to start bridge: {e}")
         return None
@@ -92,12 +95,25 @@ def test_health_and_ws_roundtrip():
             if proc and proc.poll() is None:
                 print("[DEBUG] Bridge process is still running but health check failed")
                 try:
-                    stdout, _ = proc.communicate(timeout=5)
+                    # Try to get partial output without terminating
+                    print("[DEBUG] Attempting to get bridge process output...")
+                    proc.terminate()
+                    stdout, _ = proc.communicate(timeout=10)
                     print(f"[DEBUG] Bridge process output: {stdout}")
                 except subprocess.TimeoutExpired:
-                    print("[DEBUG] Bridge process still running, couldn't get output")
+                    print("[DEBUG] Bridge process didn't terminate, forcing kill")
+                    proc.kill()
+                    stdout, _ = proc.communicate()
+                    print(f"[DEBUG] Bridge process output after kill: {stdout}")
+                except Exception as e:
+                    print(f"[DEBUG] Error getting bridge output: {e}")
             elif proc and proc.poll() is not None:
                 print(f"[DEBUG] Bridge process exited with code: {proc.returncode}")
+                try:
+                    stdout, _ = proc.communicate()
+                    print(f"[DEBUG] Final bridge output: {stdout}")
+                except:
+                    print("[DEBUG] Could not get bridge output")
             else:
                 print("[DEBUG] No bridge process was started")
         
